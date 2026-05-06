@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -34,15 +34,100 @@
         .subtitle {
             text-align: center;
             color: rgba(255,255,255,0.9);
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             font-size: 1.1rem;
         }
 
+        /* نموذج إضافة منتج */
+        .add-product-form {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group input[type="file"] {
+            padding: 8px;
+            border: 2px dashed #e0e0e0;
+            background: #f9f9f9;
+            cursor: pointer;
+        }
+
+        .image-preview {
+            width: 100px;
+            height: 100px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            margin-top: 10px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+
+        .btn-add:hover {
+            transform: translateY(-2px);
+        }
+
+        /* شبكة المنتجات */
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 25px;
-            padding: 20px;
+            padding: 20px 0;
         }
 
         .card {
@@ -66,7 +151,27 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 5rem;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
         }
 
         .card-content {
@@ -74,27 +179,36 @@
         }
 
         .card-title {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: bold;
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+        }
+
+        .card-sku {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            font-family: monospace;
+        }
+
+        .card-unit {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
         }
 
         .card-description {
             color: #666;
             line-height: 1.5;
             margin-bottom: 15px;
-        }
-
-        .card-price {
-            font-size: 1.3rem;
-            color: #667eea;
-            font-weight: bold;
+            font-size: 0.9rem;
         }
 
         .select-btn {
             display: inline-block;
-            margin-top: 15px;
+            margin-top: 10px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 10px 20px;
@@ -102,6 +216,15 @@
             text-decoration: none;
             font-weight: bold;
             transition: opacity 0.3s;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        .delete-btn {
+            background: linear-gradient(135deg, #f56565 0%, #c53030 100%);
+            margin-top: 5px;
         }
 
         .select-btn:hover {
@@ -111,125 +234,198 @@
         @media (max-width: 768px) {
             h1 { font-size: 1.8rem; }
             .grid { gap: 15px; padding: 10px; }
-            .card-image { height: 150px; font-size: 4rem; }
+            .card-image { height: 150px; }
+            .form-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📚 مواد القرطاسية</h1>
-        <div class="subtitle">اختر المنتج الذي تريد رؤيته بالواقع المعزز في غرفتك</div>
+        <h1>📚 نظام إدارة مواد القرطاسية</h1>
+        <div class="subtitle">أضف منتجاً جديداً أو اختر منتجاً لرؤيته بالواقع المعزز</div>
         
+        <!-- نموذج إضافة منتج جديد -->
+        <div class="add-product-form">
+            <div class="form-title">➕ إضافة منتج جديد</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>📷 صورة المنتج</label>
+                    <input type="file" id="productImage" accept="image/*" onchange="previewImage(event)">
+                    <div id="imagePreview" class="image-preview"></div>
+                </div>
+                <div class="form-group">
+                    <label>🏷️ اسم المنتج</label>
+                    <input type="text" id="productName" placeholder="مثال: كرسي مكتبي فاخر">
+                </div>
+                <div class="form-group">
+                    <label>🔢 رقم الأوريكال (SKU)</label>
+                    <input type="text" id="productSku" placeholder="مثال: CH-2024-001">
+                </div>
+                <div class="form-group">
+                    <label>📏 وحدة القياس</label>
+                    <select id="productUnit">
+                        <option value="قطعة">قطعة</option>
+                        <option value="علبة">علبة</option>
+                        <option value="حزمة">حزمة</option>
+                        <option value="كيلو">كيلو</option>
+                        <option value="متر">متر</option>
+                        <option value="لتر">لتر</option>
+                        <option value="طقم">طقم</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>📝 وصف المنتج</label>
+                    <input type="text" id="productDesc" placeholder="وصف قصير للمنتج">
+                </div>
+                <div class="form-group">
+                    <label>🎨 نوع المجسم (للواقع المعزز)</label>
+                    <select id="productModelType">
+                        <option value="chair">كرسي</option>
+                        <option value="desk">مكتب</option>
+                        <option value="lamp">مصباح</option>
+                        <option value="bookshelf">رف كتب</option>
+                        <option value="pen">قلم</option>
+                        <option value="notebook">دفتر</option>
+                        <option value="stand">حامل شاشة</option>
+                        <option value="cabinet">خزانة</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn-add" onclick="addProduct()">➕ إضافة المنتج</button>
+        </div>
+        
+        <!-- قائمة المنتجات -->
         <div class="grid" id="productsGrid">
-            <!-- المنتجات سيتم إضافتها هنا بواسطة JavaScript -->
+            <!-- المنتجات سيتم عرضها هنا -->
         </div>
     </div>
 
     <script>
-        // قائمة المنتجات
-        const products = [
-            {
-                id: 1,
-                name: "🪑 كرسي مكتبي فاخر",
-                description: "كرسي مريح للدراسة والعمل، بتصميم عصري",
-                price: "299 ريال",
-                icon: "🪑",
-                color: "#8B5A2B",
-                modelType: "chair"
-            },
-            {
-                id: 2,
-                name: "📖 مكتب خشبي",
-                description: "مكتب دراسة أنيق مصنوع من الخشب الطبيعي",
-                price: "499 ريال",
-                icon: "📖",
-                color: "#6B4226",
-                modelType: "desk"
-            },
-            {
-                id: 3,
-                name: "💡 مصباح قراءة",
-                description: "مصباح LED قابل للتعديل، مثالي للقراءة",
-                price: "89 ريال",
-                icon: "💡",
-                color: "#FFD700",
-                modelType: "lamp"
-            },
-            {
-                id: 4,
-                name: "📚 رف كتب",
-                description: "رف كتب خشبي بتصميم مميز يتسع للعديد من الكتب",
-                price: "199 ريال",
-                icon: "📚",
-                color: "#8B6914",
-                modelType: "bookshelf"
-            },
-            {
-                id: 5,
-                name: "✏️ قلم حبر فاخر",
-                description: "قلم حبر أنيق بخط عريض، مثالي للمناسبات",
-                price: "49 ريال",
-                icon: "✏️",
-                color: "#2C2C2C",
-                modelType: "pen"
-            },
-            {
-                id: 6,
-                name: "📓 دفتر ملاحظات",
-                description: "دفتر بتصميم جلد فاخر، أوراق عالية الجودة",
-                price: "39 ريال",
-                icon: "📓",
-                color: "#8B0000",
-                modelType: "notebook"
-            },
-            {
-                id: 7,
-                name: "🖥️ حامل شاشة",
-                description: "حامل شاشة قابل للتعديل لتحسين وضعية الجلوس",
-                price: "159 ريال",
-                icon: "🖥️",
-                color: "#4A4A4A",
-                modelType: "stand"
-            },
-            {
-                id: 8,
-                name: "🗄️ خزانة ملفات",
-                description: "خزانة صغيرة لحفظ المستندات والأوراق المهمة",
-                price: "349 ريال",
-                icon: "🗄️",
-                color: "#A0522D",
-                modelType: "cabinet"
+        // تحميل المنتجات من localStorage
+        let products = JSON.parse(localStorage.getItem('products')) || [];
+
+        // عرض معاينة الصورة
+        window.previewImage = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').style.backgroundImage = `url(${e.target.result})`;
+                    document.getElementById('imagePreview').style.backgroundSize = 'cover';
+                    document.getElementById('imagePreview').style.backgroundPosition = 'center';
+                };
+                reader.readAsDataURL(file);
             }
-        ];
+        };
+
+        // إضافة منتج جديد
+        window.addProduct = function() {
+            const name = document.getElementById('productName').value;
+            const sku = document.getElementById('productSku').value;
+            const unit = document.getElementById('productUnit').value;
+            const desc = document.getElementById('productDesc').value;
+            const modelType = document.getElementById('productModelType').value;
+            const imageFile = document.getElementById('productImage').files[0];
+
+            if (!name || !sku) {
+                alert('الرجاء إدخال اسم المنتج ورقم الأوريكال');
+                return;
+            }
+
+            const newProduct = {
+                id: Date.now(),
+                name: name,
+                sku: sku,
+                unit: unit,
+                description: desc || 'لا يوجد وصف',
+                modelType: modelType,
+                imageData: null,
+                createdAt: new Date().toLocaleDateString('ar-EG')
+            };
+
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    newProduct.imageData = e.target.result;
+                    products.push(newProduct);
+                    saveProducts();
+                    renderProducts();
+                    clearForm();
+                };
+                reader.readAsDataURL(imageFile);
+            } else {
+                products.push(newProduct);
+                saveProducts();
+                renderProducts();
+                clearForm();
+            }
+        };
+
+        // مسح النموذج
+        function clearForm() {
+            document.getElementById('productName').value = '';
+            document.getElementById('productSku').value = '';
+            document.getElementById('productDesc').value = '';
+            document.getElementById('productImage').value = '';
+            document.getElementById('imagePreview').style.backgroundImage = '';
+            document.getElementById('productUnit').value = 'قطعة';
+            document.getElementById('productModelType').value = 'chair';
+        }
+
+        // حفظ المنتجات
+        function saveProducts() {
+            localStorage.setItem('products', JSON.stringify(products));
+        }
+
+        // حذف منتج
+        window.deleteProduct = function(id) {
+            if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+                products = products.filter(p => p.id !== id);
+                saveProducts();
+                renderProducts();
+            }
+        };
+
+        // اختيار منتج للواقع المعزز
+        window.selectProduct = function(product) {
+            localStorage.setItem('selectedProduct', JSON.stringify(product));
+            window.location.href = 'ar-viewer.html';
+        };
 
         // عرض المنتجات في الشبكة
-        const productsGrid = document.getElementById('productsGrid');
-        
-        products.forEach(product => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `
-                <div class="card-image" style="background: linear-gradient(135deg, ${product.color}20, ${product.color}40)">
-                    <div style="font-size: 5rem;">${product.icon}</div>
-                </div>
-                <div class="card-content">
-                    <div class="card-title">${product.name}</div>
-                    <div class="card-description">${product.description}</div>
-                    <div class="card-price">${product.price}</div>
-                    <button class="select-btn" data-id="${product.id}">🔍 عرض بالواقع المعزز</button>
-                </div>
-            `;
+        function renderProducts() {
+            const grid = document.getElementById('productsGrid');
             
-            const btn = card.querySelector('.select-btn');
-            btn.addEventListener('click', () => {
-                // حفظ المنتج المختار في localStorage
-                localStorage.setItem('selectedProduct', JSON.stringify(product));
-                // الانتقال إلى صفحة الواقع المعزز
-                window.location.href = 'ar-viewer.html';
-            });
-            
-            productsGrid.appendChild(card);
-        });
+            if (products.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 50px; background: white; border-radius: 20px;">
+                        <div style="font-size: 3rem;">📦</div>
+                        <p style="margin-top: 10px; color: #666;">لا توجد منتجات. أضف منتجاً جديداً باستخدام النموذج أعلاه.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = products.map(product => `
+                <div class="card">
+                    <div class="card-image" style="${product.imageData ? `background-image: url(${product.imageData}); background-size: cover; background-position: center;` : 'background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);'}">
+                        ${!product.imageData ? '<div style="font-size: 3rem;">🪑</div>' : ''}
+                        <div class="card-badge">${product.modelType === 'chair' ? '🪑' : product.modelType === 'desk' ? '📖' : product.modelType === 'lamp' ? '💡' : product.modelType === 'bookshelf' ? '📚' : product.modelType === 'pen' ? '✏️' : product.modelType === 'notebook' ? '📓' : product.modelType === 'stand' ? '🖥️' : '🗄️'}</div>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">${product.name}</div>
+                        <div class="card-sku">🔢 رقم الأوريكال: ${product.sku}</div>
+                        <div class="card-unit">📏 وحدة القياس: ${product.unit}</div>
+                        <div class="card-description">📝 ${product.description}</div>
+                        <button class="select-btn" onclick="selectProduct(${JSON.stringify(product).replace(/"/g, '&quot;')})">🔍 عرض بالواقع المعزز</button>
+                        <button class="select-btn delete-btn" onclick="deleteProduct(${product.id})">🗑️ حذف المنتج</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // تحميل المنتجات عند بدء التشغيل
+        renderProducts();
     </script>
 </body>
 </html>
