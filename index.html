@@ -2,467 +2,234 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>واقع معزز - وضع كرسي في الغرفة</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>مواد القرطاسية - الواقع المعزز</title>
     <style>
-        body {
+        * {
             margin: 0;
-            overflow: hidden;
-            font-family: 'Cairo', sans-serif;
+            padding: 0;
+            box-sizing: border-box;
         }
-        
-        #info {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 30px;
-            z-index: 100;
-            pointer-events: none;
-            backdrop-filter: blur(5px);
-            font-size: 14px;
-            direction: rtl;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
         }
-        
-        #instruction {
-            position: absolute;
-            bottom: 30px;
-            left: 0;
-            right: 0;
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
             text-align: center;
-            background: rgba(0,0,0,0.8);
             color: white;
-            padding: 12px;
-            border-radius: 30px;
-            margin: 0 20px;
-            z-index: 100;
-            pointer-events: none;
-            font-size: 14px;
-            direction: rtl;
-            font-weight: 500;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-        
-        #reset-btn {
-            position: absolute;
-            bottom: 100px;
-            right: 20px;
-            background: #2196F3;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 30px;
-            z-index: 100;
+
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             cursor: pointer;
-            font-size: 14px;
-            font-family: 'Cairo', sans-serif;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
             font-weight: bold;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            transition: transform 0.2s;
+            color: #333;
+            margin-bottom: 10px;
         }
-        
-        #reset-btn:active {
-            transform: scale(0.95);
+
+        .card-description {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 15px;
         }
-        
+
+        .card-price {
+            font-size: 1.3rem;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .select-btn {
+            display: inline-block;
+            margin-top: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: opacity 0.3s;
+        }
+
+        .select-btn:hover {
+            opacity: 0.9;
+        }
+
         @media (max-width: 768px) {
-            #info { font-size: 12px; top: 10px; left: 10px; }
-            #instruction { font-size: 12px; bottom: 15px; }
-            #reset-btn { bottom: 80px; padding: 10px 16px; font-size: 12px; }
+            h1 { font-size: 1.8rem; }
+            .grid { gap: 15px; padding: 10px; }
+            .card-image { height: 150px; font-size: 4rem; }
         }
     </style>
 </head>
 <body>
-    <div id="info">
-        🪑 الواقع المعزز | كرسي ثلاثي الأبعاد
+    <div class="container">
+        <h1>📚 مواد القرطاسية</h1>
+        <div class="subtitle">اختر المنتج الذي تريد رؤيته بالواقع المعزز في غرفتك</div>
+        
+        <div class="grid" id="productsGrid">
+            <!-- المنتجات سيتم إضافتها هنا بواسطة JavaScript -->
+        </div>
     </div>
-    <div id="instruction">
-        👆 اضغط على أي مكان في الغرفة لوضع الكرسي | حرك الهاتف لرؤية الكرسي من جميع الزوايا
-    </div>
-    <button id="reset-btn">🗑️ إزالة الكرسي</button>
 
-    <!-- استيراد المكتبات المطلوبة -->
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+    <script>
+        // قائمة المنتجات
+        const products = [
+            {
+                id: 1,
+                name: "🪑 كرسي مكتبي فاخر",
+                description: "كرسي مريح للدراسة والعمل، بتصميم عصري",
+                price: "299 ريال",
+                icon: "🪑",
+                color: "#8B5A2B",
+                modelType: "chair"
+            },
+            {
+                id: 2,
+                name: "📖 مكتب خشبي",
+                description: "مكتب دراسة أنيق مصنوع من الخشب الطبيعي",
+                price: "499 ريال",
+                icon: "📖",
+                color: "#6B4226",
+                modelType: "desk"
+            },
+            {
+                id: 3,
+                name: "💡 مصباح قراءة",
+                description: "مصباح LED قابل للتعديل، مثالي للقراءة",
+                price: "89 ريال",
+                icon: "💡",
+                color: "#FFD700",
+                modelType: "lamp"
+            },
+            {
+                id: 4,
+                name: "📚 رف كتب",
+                description: "رف كتب خشبي بتصميم مميز يتسع للعديد من الكتب",
+                price: "199 ريال",
+                icon: "📚",
+                color: "#8B6914",
+                modelType: "bookshelf"
+            },
+            {
+                id: 5,
+                name: "✏️ قلم حبر فاخر",
+                description: "قلم حبر أنيق بخط عريض، مثالي للمناسبات",
+                price: "49 ريال",
+                icon: "✏️",
+                color: "#2C2C2C",
+                modelType: "pen"
+            },
+            {
+                id: 6,
+                name: "📓 دفتر ملاحظات",
+                description: "دفتر بتصميم جلد فاخر، أوراق عالية الجودة",
+                price: "39 ريال",
+                icon: "📓",
+                color: "#8B0000",
+                modelType: "notebook"
+            },
+            {
+                id: 7,
+                name: "🖥️ حامل شاشة",
+                description: "حامل شاشة قابل للتعديل لتحسين وضعية الجلوس",
+                price: "159 ريال",
+                icon: "🖥️",
+                color: "#4A4A4A",
+                modelType: "stand"
+            },
+            {
+                id: 8,
+                name: "🗄️ خزانة ملفات",
+                description: "خزانة صغيرة لحفظ المستندات والأوراق المهمة",
+                price: "349 ريال",
+                icon: "🗄️",
+                color: "#A0522D",
+                modelType: "cabinet"
             }
-        }
-    </script>
+        ];
 
-    <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-
-        // تهيئة المشهد والكاميرا والريندرر
-        const scene = new THREE.Scene();
-        scene.background = null; // شفاف لعرض كاميرا الهاتف
+        // عرض المنتجات في الشبكة
+        const productsGrid = document.getElementById('productsGrid');
         
-        // كاميرا ثلاثية الأبعاد
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 1000);
-        camera.position.set(0, 1.5, 3);
-        
-        // ريندرر ويب جي إل بشفافية
-        const renderer = new THREE.WebGLRenderer({ alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setClearColor(0x000000, 0); // شفاف تماماً
-        document.body.appendChild(renderer.domElement);
-        
-        // إضافة إضاءة للمشهد
-        // إضاءة محيطة
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
-        
-        // إضاءة اتجاهية رئيسية
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(5, 10, 7);
-        directionalLight.castShadow = true;
-        directionalLight.receiveShadow = true;
-        scene.add(directionalLight);
-        
-        // إضاءة خلفية ناعمة
-        const backLight = new THREE.DirectionalLight(0x88aaff, 0.4);
-        backLight.position.set(-2, 1, -3);
-        scene.add(backLight);
-        
-        // إضاءة من الأسفل لإظهار التفاصيل
-        const fillLight = new THREE.PointLight(0xccaa88, 0.3);
-        fillLight.position.set(0, 0.5, 0);
-        scene.add(fillLight);
-        
-        // متغير لتخزين الكرسي الحالي
-        let currentChair = null;
-        
-        // دالة إنشاء كرسي ثلاثي الأبعاد جذاب
-        function createChair(x, y, z) {
-            const group = new THREE.Group();
+        products.forEach(product => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <div class="card-image" style="background: linear-gradient(135deg, ${product.color}20, ${product.color}40)">
+                    <div style="font-size: 5rem;">${product.icon}</div>
+                </div>
+                <div class="card-content">
+                    <div class="card-title">${product.name}</div>
+                    <div class="card-description">${product.description}</div>
+                    <div class="card-price">${product.price}</div>
+                    <button class="select-btn" data-id="${product.id}">🔍 عرض بالواقع المعزز</button>
+                </div>
+            `;
             
-            // مواد الكرسي
-            const woodMaterial = new THREE.MeshStandardMaterial({ color: 0x8B5A2B, roughness: 0.4, metalness: 0.1 });
-            const cushionMaterial = new THREE.MeshStandardMaterial({ color: 0xC41E3A, roughness: 0.6, metalness: 0.05 }); // لون أحمر أنيق
-            const legMaterial = new THREE.MeshStandardMaterial({ color: 0x5D3A1A, roughness: 0.5, metalness: 0.2 });
-            const backMaterial = new THREE.MeshStandardMaterial({ color: 0x8B5A2B, roughness: 0.4 });
-            
-            // الأرجل الأربعة
-            const legHeight = 0.4;
-            const legRadius = 0.05;
-            const legPositions = [
-                [-0.35, -legHeight/2, -0.35],
-                [ 0.35, -legHeight/2, -0.35],
-                [-0.35, -legHeight/2,  0.35],
-                [ 0.35, -legHeight/2,  0.35]
-            ];
-            
-            legPositions.forEach(pos => {
-                const leg = new THREE.Mesh(
-                    new THREE.CylinderGeometry(legRadius, legRadius, legHeight, 8),
-                    legMaterial
-                );
-                leg.position.set(pos[0], pos[1], pos[2]);
-                leg.castShadow = true;
-                leg.receiveShadow = true;
-                group.add(leg);
+            const btn = card.querySelector('.select-btn');
+            btn.addEventListener('click', () => {
+                // حفظ المنتج المختار في localStorage
+                localStorage.setItem('selectedProduct', JSON.stringify(product));
+                // الانتقال إلى صفحة الواقع المعزز
+                window.location.href = 'ar-viewer.html';
             });
             
-            // قاعدة الكرسي (المقعد)
-            const seat = new THREE.Mesh(
-                new THREE.BoxGeometry(0.9, 0.1, 0.9),
-                woodMaterial
-            );
-            seat.position.set(0, -0.1, 0);
-            seat.castShadow = true;
-            seat.receiveShadow = true;
-            group.add(seat);
-            
-            // وسادة المقعد
-            const cushion = new THREE.Mesh(
-                new THREE.BoxGeometry(0.85, 0.08, 0.85),
-                cushionMaterial
-            );
-            cushion.position.set(0, -0.03, 0);
-            cushion.castShadow = true;
-            group.add(cushion);
-            
-            // ظهر الكرسي
-            const backrest = new THREE.Mesh(
-                new THREE.BoxGeometry(0.9, 0.7, 0.08),
-                backMaterial
-            );
-            backrest.position.set(0, 0.25, -0.48);
-            backrest.castShadow = true;
-            backrest.receiveShadow = true;
-            group.add(backrest);
-            
-            // وسادة الظهر
-            const backCushion = new THREE.Mesh(
-                new THREE.BoxGeometry(0.85, 0.6, 0.05),
-                cushionMaterial
-            );
-            backCushion.position.set(0, 0.25, -0.44);
-            backCushion.castShadow = true;
-            group.add(backCushion);
-            
-            // مساند الذراعين (اختيارية)
-            const armMaterial = new THREE.MeshStandardMaterial({ color: 0x7A4A1A });
-            // مسند أيمن
-            const armRight = new THREE.Mesh(
-                new THREE.BoxGeometry(0.1, 0.1, 0.7),
-                armMaterial
-            );
-            armRight.position.set(0.55, 0.1, 0);
-            armRight.castShadow = true;
-            group.add(armRight);
-            
-            // مسند أيسر
-            const armLeft = new THREE.Mesh(
-                new THREE.BoxGeometry(0.1, 0.1, 0.7),
-                armMaterial
-            );
-            armLeft.position.set(-0.55, 0.1, 0);
-            armLeft.castShadow = true;
-            group.add(armLeft);
-            
-            group.position.set(x, y, z);
-            group.scale.set(0.8, 0.8, 0.8);
-            
-            return group;
-        }
-        
-        // إضافة مؤقت لمساعد مرئي (شبكة أرضية وهمية للمساعدة في التوجيه)
-        const gridHelper = new THREE.GridHelper(5, 20, 0x888888, 0x444444);
-        gridHelper.position.y = -0.6;
-        gridHelper.visible = true;
-        // جعل الشبكة شبه شفافة لتكون مرجعية
-        gridHelper.material.transparent = true;
-        gridHelper.material.opacity = 0.3;
-        scene.add(gridHelper);
-        
-        // إضافة محاور إرشادية بسيطة (اختيارية)
-        const axesHelper = new THREE.AxesHelper(1);
-        axesHelper.visible = false; // إخفاء المحاور للمستخدم العادي
-        
-        // متغير لتخزين射线caster للكشف عن النقر
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-        
-        // إضافة كرة صغيرة تشير إلى نقطة الوضع (تأثير بصري)
-        let indicatorRing = null;
-        
-        function showTapIndicator(x, z) {
-            if (indicatorRing) {
-                scene.remove(indicatorRing);
-            }
-            const ringGeometry = new THREE.RingGeometry(0.15, 0.25, 16);
-            const ringMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00, emissive: 0x00aa00, transparent: true, opacity: 0.8, side: THREE.DoubleSide });
-            indicatorRing = new THREE.Mesh(ringGeometry, ringMaterial);
-            indicatorRing.rotation.x = -Math.PI / 2;
-            indicatorRing.position.set(x, -0.45, z);
-            scene.add(indicatorRing);
-            
-            // إزالة المؤشر بعد ثانية ونصف
-            setTimeout(() => {
-                if (indicatorRing) {
-                    scene.remove(indicatorRing);
-                    indicatorRing = null;
-                }
-            }, 1500);
-        }
-        
-        // دالة وضع الكرسي في الإحداثيات (س، ع)
-        function placeChairAt(x, z) {
-            // إزالة الكرسي الحالي إن وجد
-            if (currentChair) {
-                scene.remove(currentChair);
-            }
-            
-            // حساب ارتفاع Y بناءً على الأرضية المفترضة (Y = -0.4 ليكون قاعدة الأرجل على مستوى الشبكة)
-            const yPos = -0.4;
-            
-            // إنشاء كرسي جديد
-            currentChair = createChair(x, yPos, z);
-            scene.add(currentChair);
-            
-            // إضافة تأثير وميض صغير
-            showTapIndicator(x, z);
-        }
-        
-        // معالجة النقر على الشاشة لالتقاط النقطة في الفضاء ثلاثي الأبعاد
-        function onTap(event) {
-            // حساب إحداثيات المؤشر الموحدة (-1 إلى +1)
-            mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
-            mouse.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
-            
-            // تحديث راي كاستر من الكاميرا
-            raycaster.setFromCamera(mouse, camera);
-            
-            // إنشاء مستوى افتراضي للأرضية عند Y = -0.4
-            const planeY = -0.4;
-            const planeNormal = new THREE.Vector3(0, 1, 0);
-            const planeConstant = planeY;
-            
-            const ray = raycaster.ray;
-            const denominator = ray.direction.dot(planeNormal);
-            
-            if (Math.abs(denominator) > 0.001) {
-                const t = (planeConstant - ray.origin.dot(planeNormal)) / denominator;
-                if (t > 0) {
-                    const intersectionPoint = ray.origin.clone().add(ray.direction.clone().multiplyScalar(t));
-                    // الحد من المدى البعيد والقريب
-                    if (Math.abs(intersectionPoint.x) < 3 && Math.abs(intersectionPoint.z) < 3) {
-                        placeChairAt(intersectionPoint.x, intersectionPoint.z);
-                    } else {
-                        // إذا كان خارج النطاق، نضع الكرسي في نطاق مقبول
-                        const clampedX = Math.max(-2.5, Math.min(2.5, intersectionPoint.x));
-                        const clampedZ = Math.max(-2.5, Math.min(2.5, intersectionPoint.z));
-                        placeChairAt(clampedX, clampedZ);
-                    }
-                }
-            }
-        }
-        
-        // إضافة مستمع حدث النقر
-        renderer.domElement.addEventListener('click', onTap);
-        
-        // دالة إعادة تعيين (إزالة الكرسي)
-        document.getElementById('reset-btn').addEventListener('click', () => {
-            if (currentChair) {
-                scene.remove(currentChair);
-                currentChair = null;
-            }
-            if (indicatorRing) {
-                scene.remove(indicatorRing);
-                indicatorRing = null;
-            }
+            productsGrid.appendChild(card);
         });
-        
-        // إضافة أنيميشن بسيطة للدوران البطيء للكرسي عند وضعه (اختياري) لكننا سنضيف تأثير تحريك بسيط للكاميرا؟ لا، سنبقي التحكم للكاميرا.
-        
-        // دمج كاميرا الهاتف - استخدام getUserMedia لعرض feed الكاميرا كخلفية
-        const video = document.createElement('video');
-        video.setAttribute('autoplay', '');
-        video.setAttribute('playsinline', '');
-        video.style.position = 'fixed';
-        video.style.top = '0';
-        video.style.left = '0';
-        video.style.width = '100%';
-        video.style.height = '100%';
-        video.style.objectFit = 'cover';
-        video.style.zIndex = '-1';
-        document.body.appendChild(video);
-        
-        // طلب الوصول إلى الكاميرا الخلفية للهاتف
-        async function initCamera() {
-            try {
-                // محاولة استخدام الكاميرا الخلفية أولاً
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                let backCamera = videoDevices.find(device => device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('rear'));
-                
-                let constraints;
-                if (backCamera) {
-                    constraints = {
-                        video: { deviceId: { exact: backCamera.deviceId }, facingMode: { exact: 'environment' } }
-                    };
-                } else {
-                    constraints = {
-                        video: { facingMode: { exact: 'environment' } }
-                    };
-                }
-                
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                video.srcObject = stream;
-                await video.play();
-            } catch (err) {
-                console.error("خطأ في الوصول للكاميرا: ", err);
-                // محاولة بديلة بدون تحديد deviceId
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                    video.srcObject = stream;
-                    await video.play();
-                } catch (err2) {
-                    console.error("فشل حتى بالبديل: ", err2);
-                    // عرض رسالة للمستخدم
-                    const errorDiv = document.createElement('div');
-                    errorDiv.style.position = 'absolute';
-                    errorDiv.style.top = '50%';
-                    errorDiv.style.left = '50%';
-                    errorDiv.style.transform = 'translate(-50%, -50%)';
-                    errorDiv.style.backgroundColor = 'red';
-                    errorDiv.style.color = 'white';
-                    errorDiv.style.padding = '20px';
-                    errorDiv.style.borderRadius = '10px';
-                    errorDiv.style.zIndex = '200';
-                    errorDiv.style.textAlign = 'center';
-                    errorDiv.innerHTML = '⚠️ لا يمكن الوصول إلى الكاميرا. تأكد من منح الإذن.<br>سيعمل الواقع المعزز بدون خلفية الكاميرا.';
-                    document.body.appendChild(errorDiv);
-                    setTimeout(() => errorDiv.remove(), 5000);
-                }
-            }
-        }
-        
-        initCamera();
-        
-        // إضافة OrbitControls للسماح للمستخدم بالتفاعل مع المشهد (تدوير، تكبير)
-        // لكن يجب أن نضبطه بشكل لا يتعارض مع النقر ويدعم اللمس
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;      // حركة احتكاك
-        controls.dampingFactor = 0.05;
-        controls.rotateSpeed = 1.0;
-        controls.zoomSpeed = 1.2;
-        controls.panSpeed = 0.8;
-        controls.enableZoom = true;
-        controls.enablePan = true;
-        controls.target.set(0, 0, 0);
-        
-        // تعديل خيارات اللمس لتكون سلسة
-        controls.touchRotate = true;
-        controls.touchZoom = true;
-        
-        // مؤقت لتحديث الضوابط
-        let clock = new THREE.Clock();
-        
-        // إضافة كائن CSS2D لعرض مؤشر بسيط للمساعدة في التوجيه
-        // (لا حاجة له الآن)
-        
-        // حلقة الرسم
-        function animate() {
-            requestAnimationFrame(animate);
-            
-            // تحديث الضوابط
-            controls.update(); // تحديث الكاميرا بناء على تفاعل المستخدم
-            
-            // تحديث الإضاءة المتحركة البسيطة (اختياري)
-            const time = Date.now() * 0.002;
-            fillLight.intensity = 0.3 + Math.sin(time) * 0.1;
-            
-            // إعادة رسم المشهد
-            renderer.render(scene, camera);
-        }
-        
-        animate();
-        
-        // معالجة تغيير حجم الشاشة
-        window.addEventListener('resize', onWindowResize, false);
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-        
-        // إضافة نص توضيحي عند وضع الكرسي لأول مرة (اختياري)
-        setTimeout(() => {
-            if (!currentChair) {
-                // وضع كرسي تجريبي في منتصف المشهد ليبدأ المستخدم برؤية نموذج
-                placeChairAt(0, 0);
-            }
-        }, 1000);
-        
-        console.log("تطبيق الواقع المعزز جاهز - اضغط على الشاشة لوضع الكرسي");
     </script>
 </body>
 </html>
