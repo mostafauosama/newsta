@@ -38,7 +38,6 @@
             font-size: 1.1rem;
         }
 
-        /* نموذج إضافة منتج */
         .add-product-form {
             background: white;
             border-radius: 20px;
@@ -122,7 +121,6 @@
             transform: translateY(-2px);
         }
 
-        /* شبكة المنتجات */
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -162,18 +160,6 @@
             object-fit: cover;
         }
 
-        .card-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
         .card-content {
             padding: 20px;
         }
@@ -197,13 +183,6 @@
             font-weight: bold;
             margin-bottom: 15px;
             font-size: 1.1rem;
-        }
-
-        .card-description {
-            color: #666;
-            line-height: 1.5;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
         }
 
         .select-btn {
@@ -242,14 +221,13 @@
 <body>
     <div class="container">
         <h1>📚 نظام إدارة مواد القرطاسية</h1>
-        <div class="subtitle">أضف منتجاً جديداً أو اختر منتجاً لرؤيته بالواقع المعزز</div>
+        <div class="subtitle">أضف منتجاً مع صورته وسيتم إنشاء مجسم مطابق له بالواقع المعزز</div>
         
-        <!-- نموذج إضافة منتج جديد -->
         <div class="add-product-form">
             <div class="form-title">➕ إضافة منتج جديد</div>
             <div class="form-grid">
                 <div class="form-group">
-                    <label>📷 صورة المنتج</label>
+                    <label>📷 صورة المنتج (سيتم إنشاء مجسم مطابق لها)</label>
                     <input type="file" id="productImage" accept="image/*" onchange="previewImage(event)">
                     <div id="imagePreview" class="image-preview"></div>
                 </div>
@@ -278,33 +256,27 @@
                     <input type="text" id="productDesc" placeholder="وصف قصير للمنتج">
                 </div>
                 <div class="form-group">
-                    <label>🎨 نوع المجسم (للواقع المعزز)</label>
-                    <select id="productModelType">
+                    <label>🎨 الشكل التقريبي (للمساعدة في إنشاء المجسم)</label>
+                    <select id="productShape">
+                        <option value="auto">تلقائي (حسب الصورة)</option>
                         <option value="chair">كرسي</option>
-                        <option value="desk">مكتب</option>
+                        <option value="desk">مكتب/طاولة</option>
+                        <option value="box">صندوق/علبة</option>
+                        <option value="cylinder">أسطواني</option>
+                        <option value="book">كتاب/دفتر</option>
                         <option value="lamp">مصباح</option>
-                        <option value="bookshelf">رف كتب</option>
-                        <option value="pen">قلم</option>
-                        <option value="notebook">دفتر</option>
-                        <option value="stand">حامل شاشة</option>
-                        <option value="cabinet">خزانة</option>
                     </select>
                 </div>
             </div>
             <button class="btn-add" onclick="addProduct()">➕ إضافة المنتج</button>
         </div>
         
-        <!-- قائمة المنتجات -->
-        <div class="grid" id="productsGrid">
-            <!-- المنتجات سيتم عرضها هنا -->
-        </div>
+        <div class="grid" id="productsGrid"></div>
     </div>
 
     <script>
-        // تحميل المنتجات من localStorage
         let products = JSON.parse(localStorage.getItem('products')) || [];
 
-        // عرض معاينة الصورة
         window.previewImage = function(event) {
             const file = event.target.files[0];
             if (file) {
@@ -318,13 +290,45 @@
             }
         };
 
-        // إضافة منتج جديد
+        // استخراج الألوان الرئيسية من الصورة
+        function extractColorsFromImage(imageData, callback) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0, img.width, img.height);
+                
+                const imageDataObj = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageDataObj.data;
+                const colorCount = {};
+                
+                // أخذ عينات من الصورة
+                for (let i = 0; i < data.length; i += 100) {
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+                    const hex = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+                    colorCount[hex] = (colorCount[hex] || 0) + 1;
+                }
+                
+                // الحصول على أكثر لونين شيوعاً
+                const sortedColors = Object.entries(colorCount).sort((a, b) => b[1] - a[1]);
+                const primaryColor = sortedColors[0]?.[0] || '#8B5A2B';
+                const secondaryColor = sortedColors[1]?.[0] || '#C41E3A';
+                
+                callback(primaryColor, secondaryColor);
+            };
+            img.src = imageData;
+        }
+
         window.addProduct = function() {
             const name = document.getElementById('productName').value;
             const sku = document.getElementById('productSku').value;
             const unit = document.getElementById('productUnit').value;
             const desc = document.getElementById('productDesc').value;
-            const modelType = document.getElementById('productModelType').value;
+            const shape = document.getElementById('productShape').value;
             const imageFile = document.getElementById('productImage').files[0];
 
             if (!name || !sku) {
@@ -332,36 +336,39 @@
                 return;
             }
 
-            const newProduct = {
-                id: Date.now(),
-                name: name,
-                sku: sku,
-                unit: unit,
-                description: desc || 'لا يوجد وصف',
-                modelType: modelType,
-                imageData: null,
-                createdAt: new Date().toLocaleDateString('ar-EG')
-            };
+            if (!imageFile) {
+                alert('الرجاء رفع صورة للمنتج');
+                return;
+            }
 
-            if (imageFile) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    newProduct.imageData = e.target.result;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageData = e.target.result;
+                
+                // استخراج الألوان من الصورة
+                extractColorsFromImage(imageData, (primaryColor, secondaryColor) => {
+                    const newProduct = {
+                        id: Date.now(),
+                        name: name,
+                        sku: sku,
+                        unit: unit,
+                        description: desc || 'لا يوجد وصف',
+                        shape: shape,
+                        imageData: imageData,
+                        primaryColor: primaryColor,
+                        secondaryColor: secondaryColor,
+                        createdAt: new Date().toLocaleDateString('ar-EG')
+                    };
+                    
                     products.push(newProduct);
                     saveProducts();
                     renderProducts();
                     clearForm();
-                };
-                reader.readAsDataURL(imageFile);
-            } else {
-                products.push(newProduct);
-                saveProducts();
-                renderProducts();
-                clearForm();
-            }
+                });
+            };
+            reader.readAsDataURL(imageFile);
         };
 
-        // مسح النموذج
         function clearForm() {
             document.getElementById('productName').value = '';
             document.getElementById('productSku').value = '';
@@ -369,15 +376,13 @@
             document.getElementById('productImage').value = '';
             document.getElementById('imagePreview').style.backgroundImage = '';
             document.getElementById('productUnit').value = 'قطعة';
-            document.getElementById('productModelType').value = 'chair';
+            document.getElementById('productShape').value = 'auto';
         }
 
-        // حفظ المنتجات
         function saveProducts() {
             localStorage.setItem('products', JSON.stringify(products));
         }
 
-        // حذف منتج
         window.deleteProduct = function(id) {
             if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
                 products = products.filter(p => p.id !== id);
@@ -386,13 +391,11 @@
             }
         };
 
-        // اختيار منتج للواقع المعزز
         window.selectProduct = function(product) {
             localStorage.setItem('selectedProduct', JSON.stringify(product));
             window.location.href = 'ar-viewer.html';
         };
 
-        // عرض المنتجات في الشبكة
         function renderProducts() {
             const grid = document.getElementById('productsGrid');
             
@@ -408,23 +411,20 @@
 
             grid.innerHTML = products.map(product => `
                 <div class="card">
-                    <div class="card-image" style="${product.imageData ? `background-image: url(${product.imageData}); background-size: cover; background-position: center;` : 'background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);'}">
-                        ${!product.imageData ? '<div style="font-size: 3rem;">🪑</div>' : ''}
-                        <div class="card-badge">${product.modelType === 'chair' ? '🪑' : product.modelType === 'desk' ? '📖' : product.modelType === 'lamp' ? '💡' : product.modelType === 'bookshelf' ? '📚' : product.modelType === 'pen' ? '✏️' : product.modelType === 'notebook' ? '📓' : product.modelType === 'stand' ? '🖥️' : '🗄️'}</div>
+                    <div class="card-image" style="background-image: url(${product.imageData}); background-size: cover; background-position: center;">
                     </div>
                     <div class="card-content">
                         <div class="card-title">${product.name}</div>
                         <div class="card-sku">🔢 رقم الأوريكال: ${product.sku}</div>
                         <div class="card-unit">📏 وحدة القياس: ${product.unit}</div>
-                        <div class="card-description">📝 ${product.description}</div>
-                        <button class="select-btn" onclick="selectProduct(${JSON.stringify(product).replace(/"/g, '&quot;')})">🔍 عرض بالواقع المعزز</button>
+                        <div class="card-description" style="color:#666; font-size:0.9rem; margin-bottom:15px;">📝 ${product.description}</div>
+                        <button class="select-btn" onclick='selectProduct(${JSON.stringify(product)})'>🔍 عرض بالواقع المعزز</button>
                         <button class="select-btn delete-btn" onclick="deleteProduct(${product.id})">🗑️ حذف المنتج</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        // تحميل المنتجات عند بدء التشغيل
         renderProducts();
     </script>
 </body>
