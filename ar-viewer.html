@@ -155,7 +155,6 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         
-        // استرجاع المنتج المختار
         const selectedProduct = JSON.parse(localStorage.getItem('selectedProduct') || '{}');
         
         if (!selectedProduct.name) {
@@ -176,8 +175,6 @@
             document.getElementById('product-image-small').style.backgroundImage = `url(${selectedProduct.imageData})`;
             document.getElementById('product-image-small').style.backgroundSize = 'cover';
             document.getElementById('product-image-small').style.backgroundPosition = 'center';
-        } else {
-            document.getElementById('product-image-small').style.display = 'none';
         }
         
         // تهيئة المشهد
@@ -193,24 +190,27 @@
         renderer.setClearColor(0x000000, 0);
         document.body.appendChild(renderer.domElement);
         
-        // الإضاءة
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        // الإضاءة المحسنة لإظهار الألوان بشكل أفضل
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
         scene.add(ambientLight);
         
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(5, 10, 7);
-        directionalLight.castShadow = true;
-        scene.add(directionalLight);
+        const mainLight = new THREE.DirectionalLight(0xffffff, 1);
+        mainLight.position.set(5, 10, 7);
+        mainLight.castShadow = true;
+        scene.add(mainLight);
         
-        const backLight = new THREE.DirectionalLight(0x88aaff, 0.4);
-        backLight.position.set(-2, 1, -3);
-        scene.add(backLight);
-        
-        const fillLight = new THREE.PointLight(0xccaa88, 0.3);
-        fillLight.position.set(0, 0.5, 0);
+        const fillLight = new THREE.DirectionalLight(0x88aaff, 0.5);
+        fillLight.position.set(-3, 2, -2);
         scene.add(fillLight);
         
-        // شبكة أرضية
+        const backLight = new THREE.PointLight(0xffaa66, 0.4);
+        backLight.position.set(0, 1, -2);
+        scene.add(backLight);
+        
+        const rimLight = new THREE.PointLight(0xff8866, 0.3);
+        rimLight.position.set(1, 1.5, -1);
+        scene.add(rimLight);
+        
         const gridHelper = new THREE.GridHelper(5, 20, 0x888888, 0x444444);
         gridHelper.position.y = -0.6;
         gridHelper.material.transparent = true;
@@ -220,185 +220,139 @@
         let currentItem = null;
         let indicatorRing = null;
         
-        // دوال إنشاء الأشكال
-        function createChair(x, y, z) {
-            const group = new THREE.Group();
-            const woodMaterial = new THREE.MeshStandardMaterial({ color: 0x8B5A2B, roughness: 0.4 });
-            const cushionMaterial = new THREE.MeshStandardMaterial({ color: 0xC41E3A, roughness: 0.6 });
-            
-            const legPositions = [[-0.35, -0.2, -0.35], [0.35, -0.2, -0.35], [-0.35, -0.2, 0.35], [0.35, -0.2, 0.35]];
-            legPositions.forEach(pos => {
-                const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.4, 8), woodMaterial);
-                leg.position.set(pos[0], pos[1], pos[2]);
-                group.add(leg);
-            });
-            
-            const seat = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.1, 0.9), woodMaterial);
-            seat.position.set(0, 0, 0);
-            group.add(seat);
-            
-            const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 0.08), woodMaterial);
-            backrest.position.set(0, 0.35, -0.48);
-            group.add(backrest);
-            
-            group.position.set(x, y, z);
-            group.scale.set(0.8, 0.8, 0.8);
-            return group;
+        // دالة تحويل اللون من hex إلى THREE.Color
+        function hexToColor(hex) {
+            return new THREE.Color(hex);
         }
         
-        function createDesk(x, y, z) {
+        // دالة إنشاء مجسم مطابق للصورة بناءً على الألوان المستخرجة والشكل المختار
+        function createModelFromImage(shape, primaryColor, secondaryColor) {
             const group = new THREE.Group();
-            const woodMaterial = new THREE.MeshStandardMaterial({ color: 0x6B4226, roughness: 0.3 });
-            const top = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.1, 0.8), woodMaterial);
-            top.position.set(0, 0.2, 0);
-            group.add(top);
+            const color1 = hexToColor(primaryColor || '#8B5A2B');
+            const color2 = hexToColor(secondaryColor || '#C41E3A');
             
-            const legPositions = [[-0.5, -0.2, -0.35], [0.5, -0.2, -0.35], [-0.5, -0.2, 0.35], [0.5, -0.2, 0.35]];
-            legPositions.forEach(pos => {
-                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.4, 0.08), woodMaterial);
-                leg.position.set(pos[0], pos[1], pos[2]);
-                group.add(leg);
-            });
+            const mainMaterial = new THREE.MeshStandardMaterial({ color: color1, roughness: 0.4, metalness: 0.2 });
+            const secondaryMaterial = new THREE.MeshStandardMaterial({ color: color2, roughness: 0.5, metalness: 0.1 });
+            const accentMaterial = new THREE.MeshStandardMaterial({ color: 0xDDDDDD, roughness: 0.3, metalness: 0.4 });
             
-            group.position.set(x, y, z);
-            group.scale.set(0.7, 0.7, 0.7);
-            return group;
-        }
-        
-        function createLamp(x, y, z) {
-            const group = new THREE.Group();
-            const metalMaterial = new THREE.MeshStandardMaterial({ color: 0xC0C0C0, metalness: 0.8 });
-            const shadeMaterial = new THREE.MeshStandardMaterial({ color: 0xFFD700 });
-            
-            const base = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 0.05, 16), metalMaterial);
-            base.position.set(0, 0, 0);
-            group.add(base);
-            
-            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.5, 8), metalMaterial);
-            pole.position.set(0, 0.27, 0);
-            group.add(pole);
-            
-            const shade = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.15, 16), shadeMaterial);
-            shade.position.set(0, 0.55, 0);
-            group.add(shade);
-            
-            group.position.set(x, y, z);
-            return group;
-        }
-        
-        function createBookshelf(x, y, z) {
-            const group = new THREE.Group();
-            const woodMaterial = new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.5 });
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 0.4), woodMaterial);
-            body.position.set(0, 0.6, 0);
-            group.add(body);
-            
-            for (let i = 0; i < 3; i++) {
-                const shelf = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.05, 0.38), woodMaterial);
-                shelf.position.set(0, 0.2 + i * 0.4, 0);
-                group.add(shelf);
+            switch(shape) {
+                case 'chair':
+                    // كرسي
+                    const legPositions = [[-0.35, -0.2, -0.35], [0.35, -0.2, -0.35], [-0.35, -0.2, 0.35], [0.35, -0.2, 0.35]];
+                    legPositions.forEach(pos => {
+                        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.4, 8), mainMaterial);
+                        leg.position.set(pos[0], pos[1], pos[2]);
+                        group.add(leg);
+                    });
+                    const seat = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.1, 0.9), mainMaterial);
+                    seat.position.set(0, 0, 0);
+                    group.add(seat);
+                    const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.07, 0.85), secondaryMaterial);
+                    cushion.position.set(0, 0.05, 0);
+                    group.add(cushion);
+                    const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 0.08), mainMaterial);
+                    backrest.position.set(0, 0.35, -0.48);
+                    group.add(backrest);
+                    break;
+                    
+                case 'desk':
+                    // مكتب/طاولة
+                    const top = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.1, 0.8), mainMaterial);
+                    top.position.set(0, 0.2, 0);
+                    group.add(top);
+                    const legPositionsDesk = [[-0.5, -0.2, -0.35], [0.5, -0.2, -0.35], [-0.5, -0.2, 0.35], [0.5, -0.2, 0.35]];
+                    legPositionsDesk.forEach(pos => {
+                        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.4, 0.08), secondaryMaterial);
+                        leg.position.set(pos[0], pos[1], pos[2]);
+                        group.add(leg);
+                    });
+                    break;
+                    
+                case 'box':
+                    // صندوق/علبة
+                    const box = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.6, 0.8), mainMaterial);
+                    box.position.set(0, 0.2, 0);
+                    group.add(box);
+                    const lid = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.05, 0.85), secondaryMaterial);
+                    lid.position.set(0, 0.52, 0);
+                    group.add(lid);
+                    break;
+                    
+                case 'cylinder':
+                    // أسطواني
+                    const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.7, 32), mainMaterial);
+                    cylinder.position.set(0, 0.25, 0);
+                    group.add(cylinder);
+                    const topCap = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.05, 32), secondaryMaterial);
+                    topCap.position.set(0, 0.6, 0);
+                    group.add(topCap);
+                    break;
+                    
+                case 'book':
+                    // كتاب/دفتر
+                    const cover = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.7), mainMaterial);
+                    cover.position.set(0, 0, 0);
+                    group.add(cover);
+                    const pages = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.03, 0.66), secondaryMaterial);
+                    pages.position.set(0, 0.03, 0);
+                    group.add(pages);
+                    group.rotation.x = Math.PI / 6;
+                    break;
+                    
+                case 'lamp':
+                    // مصباح
+                    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 0.05, 16), mainMaterial);
+                    base.position.set(0, 0, 0);
+                    group.add(base);
+                    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.5, 8), secondaryMaterial);
+                    pole.position.set(0, 0.27, 0);
+                    group.add(pole);
+                    const shade = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.15, 16), mainMaterial);
+                    shade.position.set(0, 0.55, 0);
+                    group.add(shade);
+                    break;
+                    
+                default: // auto - مجسم تلقائي حسب المستطيلات
+                    // إنشاء مجسم معقد يعكس طابع المنتج
+                    const mainBody = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.5, 0.7), mainMaterial);
+                    mainBody.position.set(0, 0.2, 0);
+                    group.add(mainBody);
+                    
+                    const detail1 = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.05, 0.75), secondaryMaterial);
+                    detail1.position.set(0, 0.02, 0);
+                    group.add(detail1);
+                    
+                    const detail2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.1, 0.5), accentMaterial);
+                    detail2.position.set(0, 0.4, 0);
+                    group.add(detail2);
+                    
+                    // إضافة نسيج من الصورة إذا أمكن
+                    if (selectedProduct.imageData) {
+                        const textureLoader = new THREE.TextureLoader();
+                        const texture = textureLoader.load(selectedProduct.imageData);
+                        mainMaterial.map = texture;
+                        mainMaterial.needsUpdate = true;
+                    }
+                    break;
             }
             
-            group.position.set(x, y, z);
-            group.scale.set(0.8, 0.8, 0.8);
             return group;
-        }
-        
-        function createPen(x, y, z) {
-            const group = new THREE.Group();
-            const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x2C2C2C });
-            const tipMaterial = new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 0.9 });
-            
-            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.4, 16), bodyMaterial);
-            body.position.set(0, 0, 0);
-            group.add(body);
-            
-            const tip = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.1, 8), tipMaterial);
-            tip.position.set(0, 0.22, 0);
-            group.add(tip);
-            
-            group.position.set(x, y, z);
-            group.rotation.z = Math.PI / 4;
-            return group;
-        }
-        
-        function createNotebook(x, y, z) {
-            const group = new THREE.Group();
-            const coverMaterial = new THREE.MeshStandardMaterial({ color: 0x8B0000 });
-            const paperMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFFF0 });
-            
-            const cover = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.7), coverMaterial);
-            cover.position.set(0, 0, 0);
-            group.add(cover);
-            
-            const pages = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.03, 0.66), paperMaterial);
-            pages.position.set(0, 0.03, 0);
-            group.add(pages);
-            
-            group.position.set(x, y, z);
-            group.rotation.x = Math.PI / 6;
-            return group;
-        }
-        
-        function createStand(x, y, z) {
-            const group = new THREE.Group();
-            const metalMaterial = new THREE.MeshStandardMaterial({ color: 0x4A4A4A, metalness: 0.7 });
-            
-            const base = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.05, 0.3), metalMaterial);
-            base.position.set(0, 0, 0);
-            group.add(base);
-            
-            const pole = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.4, 0.05), metalMaterial);
-            pole.position.set(0, 0.22, 0);
-            group.add(pole);
-            
-            const holder = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.05, 0.25), metalMaterial);
-            holder.position.set(0, 0.44, 0);
-            group.add(holder);
-            
-            group.position.set(x, y, z);
-            return group;
-        }
-        
-        function createCabinet(x, y, z) {
-            const group = new THREE.Group();
-            const woodMaterial = new THREE.MeshStandardMaterial({ color: 0xA0522D });
-            
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.8, 0.5), woodMaterial);
-            body.position.set(0, 0.4, 0);
-            group.add(body);
-            
-            for (let i = 0; i < 2; i++) {
-                const drawer = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.15, 0.05), woodMaterial);
-                drawer.position.set(0, 0.2 + i * 0.3, 0.26);
-                group.add(drawer);
-            }
-            
-            group.position.set(x, y, z);
-            group.scale.set(0.8, 0.8, 0.8);
-            return group;
-        }
-        
-        function createProductByType(type, x, y, z) {
-            switch(type) {
-                case 'chair': return createChair(x, y, z);
-                case 'desk': return createDesk(x, y, z);
-                case 'lamp': return createLamp(x, y, z);
-                case 'bookshelf': return createBookshelf(x, y, z);
-                case 'pen': return createPen(x, y, z);
-                case 'notebook': return createNotebook(x, y, z);
-                case 'stand': return createStand(x, y, z);
-                case 'cabinet': return createCabinet(x, y, z);
-                default: return createChair(x, y, z);
-            }
         }
         
         function placeItemAt(x, z) {
             if (currentItem) scene.remove(currentItem);
             const yPos = -0.4;
-            currentItem = createProductByType(selectedProduct.modelType || 'chair', x, yPos, z);
+            
+            currentItem = createModelFromImage(
+                selectedProduct.shape || 'auto',
+                selectedProduct.primaryColor,
+                selectedProduct.secondaryColor
+            );
+            currentItem.position.set(x, yPos, z);
+            currentItem.scale.set(0.7, 0.7, 0.7);
             scene.add(currentItem);
             
+            // تأثير بصري
             if (indicatorRing) scene.remove(indicatorRing);
             const ringGeometry = new THREE.RingGeometry(0.15, 0.25, 16);
             const ringMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00, emissive: 0x00aa00, transparent: true, opacity: 0.8 });
@@ -413,7 +367,7 @@
             }, 1500);
         }
         
-        // النقر لوضع المنتج
+        // التعامل مع النقر
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
         
@@ -489,6 +443,10 @@
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
+            // دوران بسيط للمجسم
+            if (currentItem && !controls.autoRotate) {
+                // لا نقوم بتدوير تلقائي للحفاظ على تحكم المستخدم
+            }
             renderer.render(scene, camera);
         }
         animate();
