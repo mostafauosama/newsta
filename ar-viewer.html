@@ -119,6 +119,20 @@
             z-index: 100;
         }
         
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            z-index: 200;
+            text-align: center;
+            direction: rtl;
+        }
+        
         @media (max-width: 768px) {
             #info { font-size: 11px; max-width: 240px; padding: 10px 15px; top: 10px; left: 10px; }
             #product-name { font-size: 1rem; }
@@ -140,6 +154,9 @@
     <button class="back-btn" onclick="window.location.href='index.html'">↺ العودة للقائمة</button>
     <div class="controls">
         <button id="reset-btn">🗑️ إزالة المنتج</button>
+    </div>
+    <div id="loading" class="loading" style="display: none;">
+        ⏳ جاري تحميل المجسم...
     </div>
 
     <script type="importmap">
@@ -190,7 +207,7 @@
         renderer.setClearColor(0x000000, 0);
         document.body.appendChild(renderer.domElement);
         
-        // الإضاءة المحسنة لإظهار الألوان بشكل أفضل
+        // إضاءة قوية لإظهار تفاصيل الصورة
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
         scene.add(ambientLight);
         
@@ -199,17 +216,26 @@
         mainLight.castShadow = true;
         scene.add(mainLight);
         
-        const fillLight = new THREE.DirectionalLight(0x88aaff, 0.5);
+        const fillLight = new THREE.DirectionalLight(0xffcc88, 0.6);
         fillLight.position.set(-3, 2, -2);
         scene.add(fillLight);
         
-        const backLight = new THREE.PointLight(0xffaa66, 0.4);
+        const backLight = new THREE.PointLight(0x88aaff, 0.5);
         backLight.position.set(0, 1, -2);
         scene.add(backLight);
         
-        const rimLight = new THREE.PointLight(0xff8866, 0.3);
+        const rimLight = new THREE.PointLight(0xff8866, 0.4);
         rimLight.position.set(1, 1.5, -1);
         scene.add(rimLight);
+        
+        // إضاءة جانبية إضافية
+        const leftLight = new THREE.PointLight(0x88ffaa, 0.3);
+        leftLight.position.set(-2, 1, 1);
+        scene.add(leftLight);
+        
+        const rightLight = new THREE.PointLight(0xff88aa, 0.3);
+        rightLight.position.set(2, 1, 1);
+        scene.add(rightLight);
         
         const gridHelper = new THREE.GridHelper(5, 20, 0x888888, 0x444444);
         gridHelper.position.y = -0.6;
@@ -219,143 +245,176 @@
         
         let currentItem = null;
         let indicatorRing = null;
+        let modelTexture = null;
         
-        // دالة تحويل اللون من hex إلى THREE.Color
-        function hexToColor(hex) {
-            return new THREE.Color(hex);
-        }
-        
-        // دالة إنشاء مجسم مطابق للصورة بناءً على الألوان المستخرجة والشكل المختار
-        function createModelFromImage(shape, primaryColor, secondaryColor) {
+        // دالة إنشاء مجسم من الصورة مباشرة (لوحة مسطحة بالصورة)
+        function createImagePlane(imageUrl, width = 0.8, height = 0.8) {
             const group = new THREE.Group();
-            const color1 = hexToColor(primaryColor || '#8B5A2B');
-            const color2 = hexToColor(secondaryColor || '#C41E3A');
+            const textureLoader = new THREE.TextureLoader();
+            const texture = textureLoader.load(imageUrl);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
             
-            const mainMaterial = new THREE.MeshStandardMaterial({ color: color1, roughness: 0.4, metalness: 0.2 });
-            const secondaryMaterial = new THREE.MeshStandardMaterial({ color: color2, roughness: 0.5, metalness: 0.1 });
-            const accentMaterial = new THREE.MeshStandardMaterial({ color: 0xDDDDDD, roughness: 0.3, metalness: 0.4 });
+            // إنشاء لوحة أمامية بالصورة
+            const frontMaterial = new THREE.MeshStandardMaterial({ map: texture, side: THREE.DoubleSide, roughness: 0.3, metalness: 0.1 });
+            const frontPlane = new THREE.Mesh(new THREE.PlaneGeometry(width, height), frontMaterial);
+            frontPlane.position.set(0, 0.3, 0.05);
+            group.add(frontPlane);
             
-            switch(shape) {
-                case 'chair':
-                    // كرسي
-                    const legPositions = [[-0.35, -0.2, -0.35], [0.35, -0.2, -0.35], [-0.35, -0.2, 0.35], [0.35, -0.2, 0.35]];
-                    legPositions.forEach(pos => {
-                        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.4, 8), mainMaterial);
-                        leg.position.set(pos[0], pos[1], pos[2]);
-                        group.add(leg);
-                    });
-                    const seat = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.1, 0.9), mainMaterial);
-                    seat.position.set(0, 0, 0);
-                    group.add(seat);
-                    const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.07, 0.85), secondaryMaterial);
-                    cushion.position.set(0, 0.05, 0);
-                    group.add(cushion);
-                    const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 0.08), mainMaterial);
-                    backrest.position.set(0, 0.35, -0.48);
-                    group.add(backrest);
-                    break;
-                    
-                case 'desk':
-                    // مكتب/طاولة
-                    const top = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.1, 0.8), mainMaterial);
-                    top.position.set(0, 0.2, 0);
-                    group.add(top);
-                    const legPositionsDesk = [[-0.5, -0.2, -0.35], [0.5, -0.2, -0.35], [-0.5, -0.2, 0.35], [0.5, -0.2, 0.35]];
-                    legPositionsDesk.forEach(pos => {
-                        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.4, 0.08), secondaryMaterial);
-                        leg.position.set(pos[0], pos[1], pos[2]);
-                        group.add(leg);
-                    });
-                    break;
-                    
-                case 'box':
-                    // صندوق/علبة
-                    const box = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.6, 0.8), mainMaterial);
-                    box.position.set(0, 0.2, 0);
-                    group.add(box);
-                    const lid = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.05, 0.85), secondaryMaterial);
-                    lid.position.set(0, 0.52, 0);
-                    group.add(lid);
-                    break;
-                    
-                case 'cylinder':
-                    // أسطواني
-                    const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.7, 32), mainMaterial);
-                    cylinder.position.set(0, 0.25, 0);
-                    group.add(cylinder);
-                    const topCap = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.05, 32), secondaryMaterial);
-                    topCap.position.set(0, 0.6, 0);
-                    group.add(topCap);
-                    break;
-                    
-                case 'book':
-                    // كتاب/دفتر
-                    const cover = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.7), mainMaterial);
-                    cover.position.set(0, 0, 0);
-                    group.add(cover);
-                    const pages = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.03, 0.66), secondaryMaterial);
-                    pages.position.set(0, 0.03, 0);
-                    group.add(pages);
-                    group.rotation.x = Math.PI / 6;
-                    break;
-                    
-                case 'lamp':
-                    // مصباح
-                    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 0.05, 16), mainMaterial);
-                    base.position.set(0, 0, 0);
-                    group.add(base);
-                    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.5, 8), secondaryMaterial);
-                    pole.position.set(0, 0.27, 0);
-                    group.add(pole);
-                    const shade = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.15, 16), mainMaterial);
-                    shade.position.set(0, 0.55, 0);
-                    group.add(shade);
-                    break;
-                    
-                default: // auto - مجسم تلقائي حسب المستطيلات
-                    // إنشاء مجسم معقد يعكس طابع المنتج
-                    const mainBody = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.5, 0.7), mainMaterial);
-                    mainBody.position.set(0, 0.2, 0);
-                    group.add(mainBody);
-                    
-                    const detail1 = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.05, 0.75), secondaryMaterial);
-                    detail1.position.set(0, 0.02, 0);
-                    group.add(detail1);
-                    
-                    const detail2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.1, 0.5), accentMaterial);
-                    detail2.position.set(0, 0.4, 0);
-                    group.add(detail2);
-                    
-                    // إضافة نسيج من الصورة إذا أمكن
-                    if (selectedProduct.imageData) {
-                        const textureLoader = new THREE.TextureLoader();
-                        const texture = textureLoader.load(selectedProduct.imageData);
-                        mainMaterial.map = texture;
-                        mainMaterial.needsUpdate = true;
-                    }
-                    break;
-            }
+            // إضافة خلفية سوداء رفيعة
+            const backMaterial = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.5 });
+            const backPlane = new THREE.Mesh(new THREE.PlaneGeometry(width, height), backMaterial);
+            backPlane.position.set(0, 0.3, -0.05);
+            backPlane.rotation.y = Math.PI;
+            group.add(backPlane);
+            
+            // إضافة إطار حول الصورة
+            const frameMaterial = new THREE.MeshStandardMaterial({ color: 0xCCAA66, metalness: 0.6, roughness: 0.3 });
+            
+            // إطار علوي
+            const topFrame = new THREE.Mesh(new THREE.BoxGeometry(width + 0.05, 0.03, 0.03), frameMaterial);
+            topFrame.position.set(0, 0.3 + height/2 + 0.02, 0);
+            group.add(topFrame);
+            
+            // إطار سفلي
+            const bottomFrame = new THREE.Mesh(new THREE.BoxGeometry(width + 0.05, 0.03, 0.03), frameMaterial);
+            bottomFrame.position.set(0, 0.3 - height/2 - 0.02, 0);
+            group.add(bottomFrame);
+            
+            // إطار أيمن
+            const rightFrame = new THREE.Mesh(new THREE.BoxGeometry(0.03, height + 0.06, 0.03), frameMaterial);
+            rightFrame.position.set(width/2 + 0.04, 0.3, 0);
+            group.add(rightFrame);
+            
+            // إطار أيسر
+            const leftFrame = new THREE.Mesh(new THREE.BoxGeometry(0.03, height + 0.06, 0.03), frameMaterial);
+            leftFrame.position.set(-width/2 - 0.04, 0.3, 0);
+            group.add(leftFrame);
+            
+            // إضافة قاعدة صغيرة
+            const base = new THREE.Mesh(new THREE.BoxGeometry(width + 0.1, 0.05, 0.15), frameMaterial);
+            base.position.set(0, 0, 0);
+            group.add(base);
             
             return group;
         }
+        
+        // دالة إنشاء مجسم ثنائي الوجه (مثل بطاقة مع الصورة على الوجهين)
+        function createDoubleSidedCard(imageUrl, width = 0.7, height = 0.7) {
+            const group = new THREE.Group();
+            const textureLoader = new THREE.TextureLoader();
+            const texture = textureLoader.load(imageUrl);
+            
+            const material = new THREE.MeshStandardMaterial({ map: texture, side: THREE.DoubleSide, roughness: 0.2, metalness: 0.05 });
+            const card = new THREE.Mesh(new THREE.BoxGeometry(width, height, 0.03), material);
+            card.position.set(0, 0.3, 0);
+            group.add(card);
+            
+            // إضافة حافة ذهبية
+            const edgeMaterial = new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 0.8 });
+            const edges = new THREE.EdgesGeometry(new THREE.BoxGeometry(width, height, 0.03));
+            const wireframe = new THREE.LineSegments(edges, edgeMaterial);
+            card.add(wireframe);
+            
+            return group;
+        }
+        
+        // دالة إنشاء مجسم على شكل الصورة مع عمق بسيط
+        function createExtrudedImage(imageUrl, width = 0.8, height = 0.8, depth = 0.1) {
+            const group = new THREE.Group();
+            const textureLoader = new THREE.TextureLoader();
+            const texture = textureLoader.load(imageUrl);
+            
+            // الجسم الرئيسي
+            const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xDDDDDD, roughness: 0.4 });
+            const body = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), bodyMaterial);
+            body.position.set(0, 0.25, 0);
+            group.add(body);
+            
+            // الصورة على الوجه الأمامي
+            const frontMaterial = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.2 });
+            const frontImage = new THREE.Mesh(new THREE.PlaneGeometry(width - 0.05, height - 0.05), frontMaterial);
+            frontImage.position.set(0, 0.25, depth/2 + 0.01);
+            group.add(frontImage);
+            
+            // إضافة إطار زخرفي
+            const frameMaterial = new THREE.MeshStandardMaterial({ color: 0xC0A060, metalness: 0.5 });
+            
+            // أربعة أعمدة في الزوايا
+            const cornerPositions = [
+                [-width/2 + 0.08, 0.45, depth/2 + 0.02],
+                [width/2 - 0.08, 0.45, depth/2 + 0.02],
+                [-width/2 + 0.08, 0.05, depth/2 + 0.02],
+                [width/2 - 0.08, 0.05, depth/2 + 0.02]
+            ];
+            
+            cornerPositions.forEach(pos => {
+                const corner = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.08, 0.05), frameMaterial);
+                corner.position.set(pos[0], pos[1], pos[2]);
+                group.add(corner);
+            });
+            
+            return group;
+        }
+        
+        // دالة إنشاء مجسم مع الصورة مطبقة على جميع الوجوه
+        function createWrappedImage(imageUrl, width = 0.8, height = 0.8, depth = 0.2) {
+            const group = new THREE.Group();
+            const textureLoader = new THREE.TextureLoader();
+            const texture = textureLoader.load(imageUrl);
+            
+            // مواد مختلفة للوجوه
+            const mainMaterial = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.3 });
+            const sideMaterial = new THREE.MeshStandardMaterial({ color: 0x8B7355, roughness: 0.5 });
+            
+            // الجسم الرئيسي
+            const geometry = new THREE.BoxGeometry(width, height, depth);
+            const materials = [
+                sideMaterial, // right
+                sideMaterial, // left
+                mainMaterial, // top
+                mainMaterial, // bottom
+                mainMaterial, // front
+                sideMaterial  // back
+            ];
+            
+            const box = new THREE.Mesh(geometry, materials);
+            box.position.set(0, 0.25, 0);
+            group.add(box);
+            
+            return group;
+        }
+        
+        // دالة ذكية لاختيار نوع المجسم حسب محتوى الصورة
+        function createSmartModelFromImage(imageUrl) {
+            // نستخدم مجسم wrapped الذي يعرض الصورة من جميع الزوايا
+            // هذا يضمن ظهور المنتج كما هو في الصورة سواء كان قلماً أو كرسياً أو أي شيء آخر
+            return createWrappedImage(imageUrl, 0.9, 0.9, 0.15);
+        }
+        
+        let currentModel = null;
         
         function placeItemAt(x, z) {
             if (currentItem) scene.remove(currentItem);
             const yPos = -0.4;
             
-            currentItem = createModelFromImage(
-                selectedProduct.shape || 'auto',
-                selectedProduct.primaryColor,
-                selectedProduct.secondaryColor
-            );
-            currentItem.position.set(x, yPos, z);
-            currentItem.scale.set(0.7, 0.7, 0.7);
-            scene.add(currentItem);
+            const loadingDiv = document.getElementById('loading');
+            loadingDiv.style.display = 'block';
+            
+            // استخدام مجسم ذكي يعرض الصورة كما هي
+            currentModel = createSmartModelFromImage(selectedProduct.imageData);
+            currentModel.position.set(x, yPos, z);
+            currentModel.scale.set(0.8, 0.8, 0.8);
+            scene.add(currentModel);
+            
+            setTimeout(() => {
+                loadingDiv.style.display = 'none';
+            }, 500);
             
             // تأثير بصري
             if (indicatorRing) scene.remove(indicatorRing);
             const ringGeometry = new THREE.RingGeometry(0.15, 0.25, 16);
-            const ringMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00, emissive: 0x00aa00, transparent: true, opacity: 0.8 });
+            const ringMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00, emissive: 0x00aa00, transparent: true, opacity: 0.8, side: THREE.DoubleSide });
             indicatorRing = new THREE.Mesh(ringGeometry, ringMaterial);
             indicatorRing.rotation.x = -Math.PI / 2;
             indicatorRing.position.set(x, -0.45, z);
@@ -400,6 +459,10 @@
                 scene.remove(currentItem);
                 currentItem = null;
             }
+            if (currentModel) {
+                scene.remove(currentModel);
+                currentModel = null;
+            }
         });
         
         // كاميرا الهاتف
@@ -429,24 +492,23 @@
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        controls.rotateSpeed = 1.0;
+        controls.rotateSpeed = 1.5;
         controls.zoomSpeed = 1.2;
         controls.panSpeed = 0.8;
         controls.enableZoom = true;
         controls.enablePan = true;
         controls.target.set(0, 0, 0);
         
+        // وضع منتج تجريبي بعد تحميل الصورة
         setTimeout(() => {
-            if (!currentItem) placeItemAt(0, 0);
+            if (!currentModel && selectedProduct.imageData) {
+                placeItemAt(0, 0);
+            }
         }, 1000);
         
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
-            // دوران بسيط للمجسم
-            if (currentItem && !controls.autoRotate) {
-                // لا نقوم بتدوير تلقائي للحفاظ على تحكم المستخدم
-            }
             renderer.render(scene, camera);
         }
         animate();
