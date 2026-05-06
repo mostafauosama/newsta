@@ -15,21 +15,55 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.85);
             color: white;
-            padding: 12px 20px;
-            border-radius: 30px;
+            padding: 15px 20px;
+            border-radius: 15px;
             z-index: 100;
             pointer-events: none;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(10px);
             font-size: 14px;
             direction: rtl;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            max-width: 280px;
+            border-right: 4px solid #667eea;
         }
         
         #product-name {
             font-weight: bold;
             color: #667eea;
+            font-size: 1.2rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .product-details {
+            margin-top: 8px;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        
+        .product-details div {
+            margin: 5px 0;
+        }
+        
+        .product-sku {
+            font-family: monospace;
+            color: #ffd700;
+        }
+        
+        .product-unit {
+            color: #4caf50;
+        }
+        
+        .product-image-small {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            margin-top: 10px;
+            background-size: cover;
+            background-position: center;
+            border: 2px solid #667eea;
         }
         
         #instruction {
@@ -86,15 +120,19 @@
         }
         
         @media (max-width: 768px) {
-            #info { font-size: 12px; top: 10px; left: 10px; }
-            #instruction { font-size: 12px; bottom: 15px; }
-            button { padding: 10px 16px; font-size: 12px; }
+            #info { font-size: 11px; max-width: 240px; padding: 10px 15px; top: 10px; left: 10px; }
+            #product-name { font-size: 1rem; }
+            .product-details { font-size: 10px; }
+            #instruction { font-size: 11px; bottom: 15px; }
+            button { padding: 8px 14px; font-size: 11px; }
         }
     </style>
 </head>
 <body>
     <div id="info">
-        🎯 الواقع المعزز | المنتج: <span id="product-name">...</span>
+        <span id="product-name">...</span>
+        <div class="product-details" id="product-details"></div>
+        <div id="product-image-small" class="product-image-small"></div>
     </div>
     <div id="instruction">
         👆 اضغط على أي مكان في الغرفة لوضع المنتج | استخدم إصبعين للتحريك والتدوير والتكبير
@@ -121,15 +159,28 @@
         const selectedProduct = JSON.parse(localStorage.getItem('selectedProduct') || '{}');
         
         if (!selectedProduct.name) {
-            // إذا لم يتم العثور على منتج، العودة للقائمة
             alert('لم يتم اختيار منتج! سيتم تحويلك للقائمة.');
             window.location.href = 'index.html';
         }
         
-        // عرض اسم المنتج
+        // عرض معلومات المنتج
         document.getElementById('product-name').textContent = selectedProduct.name;
+        document.getElementById('product-details').innerHTML = `
+            <div>🔢 رقم الأوريكال: <span class="product-sku">${selectedProduct.sku || 'غير محدد'}</span></div>
+            <div>📏 وحدة القياس: <span class="product-unit">${selectedProduct.unit || 'قطعة'}</span></div>
+            <div>📝 ${selectedProduct.description || 'لا يوجد وصف'}</div>
+            <div>📅 تاريخ الإضافة: ${selectedProduct.createdAt || 'غير محدد'}</div>
+        `;
         
-        // تهيئة المشهد والكاميرا والريندرر
+        if (selectedProduct.imageData) {
+            document.getElementById('product-image-small').style.backgroundImage = `url(${selectedProduct.imageData})`;
+            document.getElementById('product-image-small').style.backgroundSize = 'cover';
+            document.getElementById('product-image-small').style.backgroundPosition = 'center';
+        } else {
+            document.getElementById('product-image-small').style.display = 'none';
+        }
+        
+        // تهيئة المشهد
         const scene = new THREE.Scene();
         scene.background = null;
         
@@ -142,7 +193,7 @@
         renderer.setClearColor(0x000000, 0);
         document.body.appendChild(renderer.domElement);
         
-        // إضافة الإضاءة
+        // الإضاءة
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         scene.add(ambientLight);
         
@@ -159,7 +210,7 @@
         fillLight.position.set(0, 0.5, 0);
         scene.add(fillLight);
         
-        // شبكة أرضية إرشادية
+        // شبكة أرضية
         const gridHelper = new THREE.GridHelper(5, 20, 0x888888, 0x444444);
         gridHelper.position.y = -0.6;
         gridHelper.material.transparent = true;
@@ -169,13 +220,12 @@
         let currentItem = null;
         let indicatorRing = null;
         
-        // دوال إنشاء الأشكال المختلفة حسب نوع المنتج
+        // دوال إنشاء الأشكال
         function createChair(x, y, z) {
             const group = new THREE.Group();
             const woodMaterial = new THREE.MeshStandardMaterial({ color: 0x8B5A2B, roughness: 0.4 });
             const cushionMaterial = new THREE.MeshStandardMaterial({ color: 0xC41E3A, roughness: 0.6 });
             
-            // الأرجل
             const legPositions = [[-0.35, -0.2, -0.35], [0.35, -0.2, -0.35], [-0.35, -0.2, 0.35], [0.35, -0.2, 0.35]];
             legPositions.forEach(pos => {
                 const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.4, 8), woodMaterial);
@@ -183,12 +233,10 @@
                 group.add(leg);
             });
             
-            // المقعد
             const seat = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.1, 0.9), woodMaterial);
             seat.position.set(0, 0, 0);
             group.add(seat);
             
-            // الظهر
             const backrest = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 0.08), woodMaterial);
             backrest.position.set(0, 0.35, -0.48);
             group.add(backrest);
@@ -201,13 +249,10 @@
         function createDesk(x, y, z) {
             const group = new THREE.Group();
             const woodMaterial = new THREE.MeshStandardMaterial({ color: 0x6B4226, roughness: 0.3 });
-            
-            // سطح المكتب
             const top = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.1, 0.8), woodMaterial);
             top.position.set(0, 0.2, 0);
             group.add(top);
             
-            // الأرجل
             const legPositions = [[-0.5, -0.2, -0.35], [0.5, -0.2, -0.35], [-0.5, -0.2, 0.35], [0.5, -0.2, 0.35]];
             legPositions.forEach(pos => {
                 const leg = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.4, 0.08), woodMaterial);
@@ -222,20 +267,17 @@
         
         function createLamp(x, y, z) {
             const group = new THREE.Group();
-            const metalMaterial = new THREE.MeshStandardMaterial({ color: 0xC0C0C0, metalness: 0.8, roughness: 0.2 });
-            const shadeMaterial = new THREE.MeshStandardMaterial({ color: 0xFFD700, emissive: 0x442200 });
+            const metalMaterial = new THREE.MeshStandardMaterial({ color: 0xC0C0C0, metalness: 0.8 });
+            const shadeMaterial = new THREE.MeshStandardMaterial({ color: 0xFFD700 });
             
-            // القاعدة
             const base = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 0.05, 16), metalMaterial);
             base.position.set(0, 0, 0);
             group.add(base);
             
-            // العمود
             const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.5, 8), metalMaterial);
             pole.position.set(0, 0.27, 0);
             group.add(pole);
             
-            // الغطاء
             const shade = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.15, 16), shadeMaterial);
             shade.position.set(0, 0.55, 0);
             group.add(shade);
@@ -247,13 +289,10 @@
         function createBookshelf(x, y, z) {
             const group = new THREE.Group();
             const woodMaterial = new THREE.MeshStandardMaterial({ color: 0x8B6914, roughness: 0.5 });
-            
-            // الجسم الرئيسي
             const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 0.4), woodMaterial);
             body.position.set(0, 0.6, 0);
             group.add(body);
             
-            // الأرفف
             for (let i = 0; i < 3; i++) {
                 const shelf = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.05, 0.38), woodMaterial);
                 shelf.position.set(0, 0.2 + i * 0.4, 0);
@@ -267,15 +306,13 @@
         
         function createPen(x, y, z) {
             const group = new THREE.Group();
-            const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x2C2C2C, metalness: 0.3 });
+            const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x2C2C2C });
             const tipMaterial = new THREE.MeshStandardMaterial({ color: 0xFFD700, metalness: 0.9 });
             
-            // جسم القلم
             const body = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.4, 16), bodyMaterial);
             body.position.set(0, 0, 0);
             group.add(body);
             
-            // طرف القلم
             const tip = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.1, 8), tipMaterial);
             tip.position.set(0, 0.22, 0);
             group.add(tip);
@@ -287,15 +324,13 @@
         
         function createNotebook(x, y, z) {
             const group = new THREE.Group();
-            const coverMaterial = new THREE.MeshStandardMaterial({ color: 0x8B0000, roughness: 0.2 });
+            const coverMaterial = new THREE.MeshStandardMaterial({ color: 0x8B0000 });
             const paperMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFFF0 });
             
-            // الغلاف
             const cover = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.7), coverMaterial);
             cover.position.set(0, 0, 0);
             group.add(cover);
             
-            // الأوراق
             const pages = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.03, 0.66), paperMaterial);
             pages.position.set(0, 0.03, 0);
             group.add(pages);
@@ -309,17 +344,14 @@
             const group = new THREE.Group();
             const metalMaterial = new THREE.MeshStandardMaterial({ color: 0x4A4A4A, metalness: 0.7 });
             
-            // القاعدة
             const base = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.05, 0.3), metalMaterial);
             base.position.set(0, 0, 0);
             group.add(base);
             
-            // العمود
             const pole = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.4, 0.05), metalMaterial);
             pole.position.set(0, 0.22, 0);
             group.add(pole);
             
-            // حامل الشاشة
             const holder = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.05, 0.25), metalMaterial);
             holder.position.set(0, 0.44, 0);
             group.add(holder);
@@ -330,14 +362,12 @@
         
         function createCabinet(x, y, z) {
             const group = new THREE.Group();
-            const woodMaterial = new THREE.MeshStandardMaterial({ color: 0xA0522D, roughness: 0.4 });
+            const woodMaterial = new THREE.MeshStandardMaterial({ color: 0xA0522D });
             
-            // الجسم
             const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.8, 0.5), woodMaterial);
             body.position.set(0, 0.4, 0);
             group.add(body);
             
-            // الأدراج (تفاصيل بسيطة)
             for (let i = 0; i < 2; i++) {
                 const drawer = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.15, 0.05), woodMaterial);
                 drawer.position.set(0, 0.2 + i * 0.3, 0.26);
@@ -349,7 +379,6 @@
             return group;
         }
         
-        // دالة إنشاء المنتج حسب النوع
         function createProductByType(type, x, y, z) {
             switch(type) {
                 case 'chair': return createChair(x, y, z);
@@ -364,17 +393,12 @@
             }
         }
         
-        // وضع المنتج
         function placeItemAt(x, z) {
-            if (currentItem) {
-                scene.remove(currentItem);
-            }
-            
+            if (currentItem) scene.remove(currentItem);
             const yPos = -0.4;
             currentItem = createProductByType(selectedProduct.modelType || 'chair', x, yPos, z);
             scene.add(currentItem);
             
-            // تأثير بصري
             if (indicatorRing) scene.remove(indicatorRing);
             const ringGeometry = new THREE.RingGeometry(0.15, 0.25, 16);
             const ringMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00, emissive: 0x00aa00, transparent: true, opacity: 0.8 });
@@ -389,7 +413,7 @@
             }, 1500);
         }
         
-        // التعامل مع النقر
+        // النقر لوضع المنتج
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
         
@@ -417,7 +441,6 @@
         
         renderer.domElement.addEventListener('click', onTap);
         
-        // زر إعادة التعيين
         document.getElementById('reset-btn').addEventListener('click', () => {
             if (currentItem) {
                 scene.remove(currentItem);
@@ -449,7 +472,6 @@
         }
         initCamera();
         
-        // التحكم في المشهد
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
@@ -460,12 +482,10 @@
         controls.enablePan = true;
         controls.target.set(0, 0, 0);
         
-        // وضع منتج تجريبي
         setTimeout(() => {
             if (!currentItem) placeItemAt(0, 0);
         }, 1000);
         
-        // حلقة الرسم
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
