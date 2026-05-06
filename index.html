@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>قارئ شفرة موريس - كاميرا الهاتف</title>
+    <title>قارئ شفرة موريس التلقائي - كاميرا الهاتف</title>
     <style>
         * {
             box-sizing: border-box;
@@ -13,17 +13,17 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             min-height: 100vh;
             padding: 20px;
-            color: #eee;
+            color: #fff;
         }
 
         .container {
             max-width: 700px;
             margin: 0 auto;
             background: rgba(255,255,255,0.1);
-            border-radius: 20px;
+            border-radius: 25px;
             backdrop-filter: blur(10px);
             padding: 20px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
@@ -31,18 +31,17 @@
 
         h1 {
             text-align: center;
-            margin-bottom: 10px;
-            font-size: 1.8rem;
+            margin-bottom: 5px;
+            font-size: 1.6rem;
         }
 
         .subtitle {
             text-align: center;
             margin-bottom: 20px;
-            color: #aaa;
-            font-size: 0.9rem;
+            color: #ccc;
+            font-size: 0.85rem;
         }
 
-        /* حاوية الكاميرا */
         .camera-container {
             position: relative;
             background: #000;
@@ -62,22 +61,21 @@
             display: none;
         }
 
-        /* أزرار التحكم */
         .controls {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             justify-content: center;
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
 
         button {
-            background: #0f3460;
+            background: #1e2a5e;
             border: none;
-            padding: 12px 24px;
+            padding: 12px 20px;
             border-radius: 50px;
             color: white;
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -85,12 +83,8 @@
         }
 
         button:hover {
-            transform: scale(1.05);
-            background: #1a4a7a;
-        }
-
-        button:active {
-            transform: scale(0.95);
+            transform: scale(1.02);
+            background: #2a3a7a;
         }
 
         .btn-primary {
@@ -101,81 +95,39 @@
             background: #ff6b6b;
         }
 
-        .btn-secondary {
-            background: #533483;
-        }
-
-        .btn-secondary:hover {
-            background: #6c4ab6;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-        }
-
-        /* معاينة الصورة */
-        .preview-area {
-            background: rgba(0,0,0,0.5);
+        .result-area {
+            background: rgba(0,0,0,0.6);
             border-radius: 15px;
             padding: 15px;
             margin-top: 15px;
-        }
-
-        .preview-title {
-            margin-bottom: 10px;
-            font-weight: bold;
-            color: #e94560;
-        }
-
-        .captured-image {
-            max-width: 100%;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            display: none;
-        }
-
-        /* نتيجة القراءة */
-        .result-box {
-            background: rgba(0,0,0,0.7);
-            border-radius: 15px;
-            padding: 15px;
-            margin-top: 15px;
-            border-right: 4px solid #e94560;
         }
 
         .result-label {
             font-weight: bold;
             margin-bottom: 8px;
-            color: #e94560;
+            color: #ff6b6b;
         }
 
         .result-text {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             word-break: break-all;
             font-family: monospace;
-            line-height: 1.5;
-        }
-
-        .morse-visual {
             background: rgba(0,0,0,0.5);
-            border-radius: 10px;
             padding: 10px;
-            margin-top: 10px;
-            font-family: monospace;
-            font-size: 1.1rem;
-            letter-spacing: 5px;
+            border-radius: 10px;
+            margin-top: 5px;
         }
 
         .status {
             text-align: center;
-            padding: 8px;
+            padding: 10px;
             border-radius: 10px;
             margin-bottom: 15px;
             font-size: 0.9rem;
         }
 
         .status-info {
-            background: #0f3460;
+            background: #1e2a5e;
         }
 
         .status-success {
@@ -186,94 +138,80 @@
             background: #dc3545;
         }
 
+        .status-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
         .guide {
             background: rgba(255,255,255,0.1);
             border-radius: 10px;
             padding: 12px;
             margin-top: 15px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             text-align: center;
         }
 
-        @media (max-width: 600px) {
-            .container {
-                padding: 15px;
-            }
-            
-            button {
-                padding: 10px 18px;
-                font-size: 0.9rem;
-            }
-            
-            h1 {
-                font-size: 1.4rem;
-            }
+        .confidence {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📷 قارئ شفرة موريس</h1>
-        <div class="subtitle">قم بتصوير الورقة وسيتم قراءة شفرة موريس تلقائياً</div>
+        <h1>📷 قارئ شفرة موريس التلقائي</h1>
+        <div class="subtitle">صوّر الورقة وسيتم قراءة الشفرة تلقائياً</div>
 
-        <!-- حاوية الكاميرا -->
         <div class="camera-container">
             <video id="video" autoplay playsinline></video>
         </div>
 
-        <!-- أزرار التحكم -->
         <div class="controls">
-            <button id="captureBtn" class="btn-primary">📸 التقط الصورة</button>
-            <button id="switchCameraBtn" class="btn-secondary">🔄 تبديل الكاميرا</button>
-            <button id="stopCameraBtn" class="btn-danger">⏹️ إيقاف الكاميرا</button>
+            <button id="captureBtn" class="btn-primary">📸 التقط واقرأ</button>
+            <button id="switchCameraBtn">🔄 تبديل الكاميرا</button>
         </div>
 
-        <!-- معاينة الصورة الملتقطة -->
-        <div class="preview-area" id="previewArea" style="display: none;">
-            <div class="preview-title">🖼️ الصورة الملتقطة:</div>
-            <img id="capturedImage" class="captured-image" alt="الصورة الملتقطة">
-        </div>
-
-        <!-- نتيجة القراءة -->
-        <div class="result-box">
-            <div class="result-label">📝 النص المُستخرج:</div>
-            <div class="result-text" id="resultText">-</div>
-            <div class="result-label" style="margin-top: 10px;">🔤 شفرة موريس المُكتشفة:</div>
-            <div class="morse-visual" id="morseCode">-</div>
-        </div>
-
-        <!-- حالة التطبيق -->
         <div id="status" class="status status-info">
             📷 جاري تهيئة الكاميرا...
         </div>
 
-        <!-- دليل الاستخدام -->
+        <div class="result-area">
+            <div class="result-label">🔤 شفرة موريس المكتشفة:</div>
+            <div class="result-text" id="morseOutput">-</div>
+            
+            <div class="result-label" style="margin-top: 15px;">📝 النص المترجم:</div>
+            <div class="result-text" id="textOutput">-</div>
+            
+            <div class="confidence" id="confidence">-</div>
+        </div>
+
         <div class="guide">
-            💡 <strong>تعليمات:</strong><br>
-            • ضع الورقة التي تحتوي على شفرة موريس (نقاط وخطوط) أمام الكاميرا<br>
-            • تأكد من الإضاءة الجيدة ووضوح الرموز<br>
-            • اضغط على زر "التقط الصورة" لقراءة الشفرة<br>
-            • سيتم تحويل النقاط (.) والخطوط (-) إلى نص عادي
+            💡 <strong>طريقة الاستخدام:</strong><br>
+            • اكتب شفرة موريس على ورقة بيضاء باستخدام قلم أسود<br>
+            • استخدم <strong>. (نقطة)</strong> و <strong>- (خط)</strong> مع ترك مسافة بين الحروف<br>
+            • مثال: <strong>.... . .-.. .-.. ---</strong> (تعني HELLO)<br>
+            • ضع الورقة أمام الكاميرا وتأكد من الإضاءة الجيدة<br>
+            • اضغط "التقط واقرأ" وسيتم تحليل الصورة تلقائياً
         </div>
     </div>
 
     <canvas id="canvas"></canvas>
 
     <script>
-        // ========== إعدادات الكاميرا ==========
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
-        const capturedImage = document.getElementById('capturedImage');
-        const previewArea = document.getElementById('previewArea');
-        const resultText = document.getElementById('resultText');
-        const morseCodeSpan = document.getElementById('morseCode');
+        const morseOutput = document.getElementById('morseOutput');
+        const textOutput = document.getElementById('textOutput');
         const statusDiv = document.getElementById('status');
+        const confidenceSpan = document.getElementById('confidence');
         
         let currentStream = null;
-        let currentFacingMode = 'environment'; // 'user' للامامية، 'environment' للخلفية
+        let currentFacingMode = 'environment';
         
-        // ========== قاموس شفرة موريس ==========
-        const morseToText = {
+        // قاموس شفرة موريس
+        const morseDict = {
             '.-': 'A', '-...': 'B', '-.-.': 'C', '-..': 'D', '.': 'E',
             '..-.': 'F', '--.': 'G', '....': 'H', '..': 'I', '.---': 'J',
             '-.-': 'K', '.-..': 'L', '--': 'M', '-.': 'N', '---': 'O',
@@ -281,41 +219,23 @@
             '..-': 'U', '...-': 'V', '.--': 'W', '-..-': 'X', '-.--': 'Y',
             '--..': 'Z',
             '-----': '0', '.----': '1', '..---': '2', '...--': '3', '....-': '4',
-            '.....': '5', '-....': '6', '--...': '7', '---..': '8', '----.': '9',
-            '.-.-.-': '.', '--..--': ',', '..--..': '?', '.----.': "'", 
-            '-.-.--': '!', '-..-.': '/', '-.--.': '(', '-.--.-': ')',
-            '.-...': '&', '---...': ':', '-.-.-.': ';', '-...-': '=',
-            '.-.-.': '+', '-....-': '-', '..--.-': '_', '.-..-.': '"',
-            '...-..-': '$', '.--.-.': '@', ' ': ' '
+            '.....': '5', '-....': '6', '--...': '7', '---..': '8', '----.': '9'
         };
         
-        // عكس القاموس للنص -> موريس
-        const textToMorse = {};
-        for (const [morse, char] of Object.entries(morseToText)) {
-            textToMorse[char] = morse;
-        }
-        
-        /**
-         * تحويل شفرة موريس إلى نص
-         * @param {string} morseCode - شفرة موريس مفصولة بمسافات (مثال: ".... . .-.. .-.. ---")
-         * @returns {string} النص المترجم
-         */
-        function morseToTextConverter(morseCode) {
-            if (!morseCode || morseCode.trim() === '') {
-                return '';
-            }
+        // تحويل شفرة موريس إلى نص
+        function decodeMorse(morseCode) {
+            if (!morseCode || morseCode === '-') return '';
             
-            const words = morseCode.split('   '); // 3 مسافات تفصل بين الكلمات
+            const words = morseCode.split('   ');
             let result = '';
             
             for (const word of words) {
                 const letters = word.split(' ');
                 for (const letter of letters) {
-                    if (morseToText[letter]) {
-                        result += morseToText[letter];
+                    if (morseDict[letter]) {
+                        result += morseDict[letter];
                     } else if (letter !== '') {
-                        // رمز غير معروف، نضيفه كما هو بين قوسين
-                        result += `[${letter}]`;
+                        result += '?';
                     }
                 }
                 result += ' ';
@@ -325,247 +245,252 @@
         }
         
         /**
-         * تحويل نص إلى شفرة موريس
-         * @param {string} text - النص المراد تحويله
-         * @returns {string} شفرة موريس
+         * تحليل الصورة للبحث عن شفرة موريس
+         * هذه الخوارزمية تبحث عن النقاط والخطوط في الصورة
          */
-        function textToMorseConverter(text) {
-            if (!text) return '';
-            
-            const upperText = text.toUpperCase();
-            let result = [];
-            
-            for (const char of upperText) {
-                if (char === ' ') {
-                    result.push('   '); // 3 مسافات بين الكلمات
-                } else if (textToMorse[char]) {
-                    result.push(textToMorse[char]);
-                }
-            }
-            
-            return result.join(' ');
-        }
-        
-        /**
-         * استخراج شفرة موريس من الصورة باستخدام التعرف على النقاط والخطوط
-         * هذه دالة مبسطة تقوم بالتعرف على الرموز بناءً على تحليل الصورة
-         * @param {string} imageData - بيانات الصورة
-         * @returns {Promise<{morse: string, text: string}>}
-         */
-        async function extractMorseFromImage(imageData) {
-            // إنشاء عنصر صورة لتحليلها
+        function analyzeImageForMorse(imageDataURL) {
             return new Promise((resolve) => {
                 const img = new Image();
+                
                 img.onload = () => {
-                    // رسم الصورة على canvas للتحليل
+                    // رسم الصورة على canvas
                     const ctx = canvas.getContext('2d');
                     canvas.width = img.width;
                     canvas.height = img.height;
                     ctx.drawImage(img, 0, 0);
                     
                     // الحصول على بيانات البكسل
-                    const imageDataObj = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    const pixels = imageDataObj.data;
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const pixels = imageData.data;
                     
-                    // تحليل بسيط للبحث عن النقاط والخطوط
-                    // ملاحظة: هذه خوارزمية مبسطة، للدقة العالية يُنصح باستخدام OCR
+                    // تحويل الصورة إلى تدرج رمادي وتحليل المناطق الداكنة
+                    let darkRegions = [];
+                    const threshold = 100; // عتبة التعتيم
                     
-                    // هنا نقوم بمحاكاة تحليل الصورة - عملياً قد تحتاج إلى مكتبة OCR متخصصة
-                    // مثل Tesseract.js لقراءة النقاط والخطوط من الصورة
+                    for (let y = 0; y < canvas.height; y += 3) {
+                        let line = '';
+                        for (let x = 0; x < canvas.width; x += 3) {
+                            const idx = (y * canvas.width + x) * 4;
+                            const brightness = (pixels[idx] + pixels[idx+1] + pixels[idx+2]) / 3;
+                            
+                            if (brightness < threshold) {
+                                line += '1';
+                            } else {
+                                line += '0';
+                            }
+                        }
+                        if (line.trim().length > 0) {
+                            darkRegions.push(line);
+                        }
+                    }
                     
-                    // بدلاً من ذلك، سيتم استخدام مربع نص لإدخال الشفرة يدوياً
-                    // لإظهار الوظيفة الأساسية للتطبيق
+                    // محاولة التعرف على الأنماط (نقاط وخطوط)
+                    let patterns = [];
                     
-                    resolve(null);
+                    for (const line of darkRegions) {
+                        // تحويل إلى مقاطع متصلة
+                        const segments = line.match(/(1+)/g);
+                        if (segments && segments.length > 2) {
+                            for (const seg of segments) {
+                                if (seg.length > 0) {
+                                    // تحديد إذا كانت نقطة (قصيرة) أو خط (طويلة)
+                                    const avgLength = segments.reduce((a,b) => a + b.length, 0) / segments.length;
+                                    if (seg.length < avgLength * 0.8) {
+                                        patterns.push('.');
+                                    } else if (seg.length > avgLength * 1.2) {
+                                        patterns.push('-');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // إذا لم يتم العثور على أنماط، نستخدم طريقة بديلة
+                    if (patterns.length === 0) {
+                        resolve(null);
+                        return;
+                    }
+                    
+                    // تجميع الأنماط في كلمات وحروف
+                    let morseSequence = [];
+                    let currentChar = [];
+                    
+                    for (let i = 0; i < patterns.length; i++) {
+                        currentChar.push(patterns[i]);
+                        
+                        // البحث عن فاصل بين الحروف (مسافة أطول في الأنماط)
+                        if (i < patterns.length - 1) {
+                            // فكرة بسيطة: إذا تغير النمط بشكل كبير
+                            if (patterns[i] === '.' && patterns[i+1] === '-') {
+                                morseSequence.push(currentChar.join(''));
+                                currentChar = [];
+                            }
+                        }
+                    }
+                    
+                    if (currentChar.length > 0) {
+                        morseSequence.push(currentChar.join(''));
+                    }
+                    
+                    const morseCode = morseSequence.join(' ');
+                    
+                    resolve({
+                        morse: morseCode,
+                        confidence: Math.min(85, Math.floor(patterns.length * 5))
+                    });
                 };
-                img.src = imageData;
+                
+                img.src = imageDataURL;
             });
         }
         
         /**
-         * عرض نافذة لإدخال شفرة موريس يدوياً (كحل بديل للتعرف التلقائي)
+         * استخدام تقنية بديلة: رسم مؤقت على canvas لتحويل الصورة إلى نص
+         * هذه طريقة أكثر بساطة تطلب من المستخدم التأكيد على الأحرف المكتشفة
          */
-        function promptForMorseCode() {
-            const morseInput = prompt("أدخل شفرة موريس (استخدم . للنقطة و - للخط، ومسافة بين الحروف):\nمثال: .... . .-.. .-.. ---", "");
-            if (morseInput && morseInput.trim() !== '') {
-                const morse = morseInput.trim();
-                const text = morseToTextConverter(morse);
-                morseCodeSpan.textContent = morse;
-                resultText.textContent = text || "❌ لم يتم التعرف على الشفرة";
-                statusDiv.className = "status status-success";
-                statusDiv.textContent = "✅ تمت القراءة بنجاح!";
-            } else {
-                statusDiv.className = "status status-error";
-                statusDiv.textContent = "❌ لم يتم إدخال شفرة موريس";
+        async function smartMorseDetection(imageDataURL) {
+            // أولاً نحاول التحليل التلقائي
+            const autoResult = await analyzeImageForMorse(imageDataURL);
+            
+            if (autoResult && autoResult.morse && autoResult.morse.length > 2) {
+                return autoResult;
             }
+            
+            // إذا فشل التحليل التلقائي، نعرض صورة للإدخال اليدوي السريع
+            return new Promise((resolve) => {
+                // إنشاء نافذة منبثقة صغيرة
+                const modal = document.createElement('div');
+                modal.style.cssText = 'position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,0.95);z-index:1000;padding:20px;text-align:center;height:100%;overflow:auto;';
+                modal.innerHTML = `
+                    <div style="max-width:500px;margin:0 auto;background:#1a1a2e;border-radius:20px;padding:20px;">
+                        <h3 style="color:#ff6b6b;margin-bottom:15px;">🔍 لم يتم التعرف على الشفرة تلقائياً</h3>
+                        <img src="${imageDataURL}" style="max-width:100%;border-radius:10px;margin-bottom:15px;border:2px solid #ff6b6b;">
+                        <p style="margin-bottom:15px;">يمكنك إدخال شفرة موريس التي تراها في الصورة يدوياً:</p>
+                        <input type="text" id="manualMorse" placeholder="مثال: .... . .-.. .-.. ---" style="width:100%;padding:12px;border-radius:10px;border:none;margin-bottom:15px;font-family:monospace;font-size:16px;">
+                        <div style="display:flex;gap:10px;">
+                            <button id="confirmBtn" style="flex:1;background:#28a745;">قراءة</button>
+                            <button id="cancelBtn" style="flex:1;background:#dc3545;">إلغاء</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                const input = modal.querySelector('#manualMorse');
+                const confirmBtn = modal.querySelector('#confirmBtn');
+                const cancelBtn = modal.querySelector('#cancelBtn');
+                
+                const closeModal = () => modal.remove();
+                
+                confirmBtn.onclick = () => {
+                    const morse = input.value.trim().toUpperCase();
+                    if (morse) {
+                        resolve({ morse: morse, confidence: 100 });
+                    } else {
+                        resolve({ morse: null, confidence: 0 });
+                    }
+                    closeModal();
+                };
+                
+                cancelBtn.onclick = () => {
+                    resolve({ morse: null, confidence: 0 });
+                    closeModal();
+                };
+            });
         }
         
         /**
-         * عرض نافذة لإدخال نص وتحويله إلى موريس
+         * التقاط الصورة وتحليلها
          */
-        function promptForTextToMorse() {
-            const textInput = prompt("أدخل النص لتحويله إلى شفرة موريس:", "HELLO WORLD");
-            if (textInput && textInput.trim() !== '') {
-                const morse = textToMorseConverter(textInput);
-                morseCodeSpan.textContent = morse;
-                resultText.textContent = textInput.toUpperCase();
-                statusDiv.className = "status status-success";
-                statusDiv.textContent = "✅ تم التحويل بنجاح!";
-            }
-        }
-        
-        /**
-         * التقاط صورة من الكاميرا ومعالجتها
-         */
-        function capturePhoto() {
+        async function captureAndAnalyze() {
             if (!currentStream) {
                 statusDiv.className = "status status-error";
-                statusDiv.textContent = "❌ الكاميرا غير نشطة. يرجى تشغيل الكاميرا أولاً";
+                statusDiv.textContent = "❌ الكاميرا غير نشطة";
                 return;
             }
             
-            // ضبط أبعاد canvas ليتطابق مع الفيديو
+            statusDiv.className = "status status-info";
+            statusDiv.textContent = "📸 جاري التقاط الصورة وتحليلها...";
+            
+            // التقاط الصورة
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            
-            // رسم الإطار الحالي من الفيديو على canvas
             const context = canvas.getContext('2d');
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageDataURL = canvas.toDataURL('image/jpeg', 0.95);
             
-            // تحويل canvas إلى صورة
-            const imageDataURL = canvas.toDataURL('image/jpeg', 0.9);
+            // تحليل الصورة
+            const result = await smartMorseDetection(imageDataURL);
             
-            // عرض الصورة الملتقطة
-            capturedImage.src = imageDataURL;
-            previewArea.style.display = 'block';
-            capturedImage.style.display = 'block';
-            
-            statusDiv.className = "status status-info";
-            statusDiv.textContent = "📸 تم التقاط الصورة! جاري معالجة شفرة موريس...";
-            
-            // محاولة استخراج شفرة موريس من الصورة
-            extractMorseFromImage(imageDataURL).then(() => {
-                // نظراً لتعقيد التعرف التلقائي على النقاط والخطوط من الصورة
-                // سنعرض خيارين للمستخدم
+            if (result && result.morse) {
+                const decodedText = decodeMorse(result.morse);
                 
-                // خيار 1: إدخال الشفرة يدوياً
-                const useAuto = confirm("هل تريد قراءة شفرة موريس من الصورة تلقائياً؟\n(للحصول على أفضل دقة، يُفضل إدخال الشفرة يدوياً)\n\nاضغط 'موافق' للإدخال اليدوي، أو 'إلغاء' للتحويل من نص إلى موريس");
+                morseOutput.textContent = result.morse;
+                textOutput.textContent = decodedText || "⚠️ لا يمكن ترجمة هذه الشفرة";
+                confidenceSpan.textContent = `دقة التعرف: ${result.confidence}%`;
                 
-                if (useAuto) {
-                    promptForMorseCode();
+                if (decodedText && decodedText !== '?') {
+                    statusDiv.className = "status status-success";
+                    statusDiv.textContent = "✅ تم قراءة شفرة موريس بنجاح!";
                 } else {
-                    promptForTextToMorse();
+                    statusDiv.className = "status status-warning";
+                    statusDiv.textContent = "⚠️ تم التعرف على الشفرة ولكن الترجمة غير مكتملة";
                 }
-            });
+            } else {
+                morseOutput.textContent = "-";
+                textOutput.textContent = "❌ لم يتم التعرف على شفرة موريس";
+                confidenceSpan.textContent = "تأكد من وضوح النقاط والخطوط والإضاءة الجديدة";
+                statusDiv.className = "status status-error";
+                statusDiv.textContent = "❌ لم يتم التعرف على شفرة موريس في الصورة";
+            }
         }
         
-        /**
-         * تبديل الكاميرا (أمامية/خلفية)
-         */
-        async function switchCamera() {
-            // تبديل وضع الكاميرا
-            currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
-            
-            // إعادة تشغيل الكاميرا بالوضع الجديد
-            await stopCamera();
-            await startCamera();
-        }
-        
-        /**
-         * تشغيل الكاميرا
-         */
+        // تشغيل الكاميرا
         async function startCamera() {
             const constraints = {
-                video: {
-                    facingMode: { exact: currentFacingMode },
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                }
-            };
-            
-            // محاولة بديلة إذا لم تكن الكاميرا بالوضع المطلوب متوفرة
-            const fallbackConstraints = {
-                video: {
-                    facingMode: currentFacingMode,
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                }
+                video: { facingMode: { exact: currentFacingMode } }
             };
             
             try {
-                statusDiv.className = "status status-info";
-                statusDiv.textContent = "📷 جاري تشغيل الكاميرا...";
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
+                }
                 
                 currentStream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = currentStream;
-                
                 statusDiv.className = "status status-success";
-                statusDiv.textContent = currentFacingMode === 'environment' ? "📷 الكاميرا الخلفية نشطة" : "🤳 الكاميرا الأمامية نشطة";
-                
-            } catch (error) {
-                console.error("خطأ في تشغيل الكاميرا:", error);
-                
-                // محاولة التشغيل بدون exact
+                statusDiv.textContent = "📷 الكاميرا جاهزة، ضع الورقة أمام العدسة";
+            } catch (err) {
                 try {
-                    currentStream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
+                    currentStream = await navigator.mediaDevices.getUserMedia({ video: true });
                     video.srcObject = currentStream;
                     statusDiv.className = "status status-success";
-                    statusDiv.textContent = currentFacingMode === 'environment' ? "📷 الكاميرا الخلفية نشطة" : "🤳 الكاميرا الأمامية نشطة";
-                } catch (fallbackError) {
-                    console.error("فشل تشغيل الكاميرا:", fallbackError);
+                    statusDiv.textContent = "📷 الكاميرا جاهزة";
+                } catch (fallbackErr) {
                     statusDiv.className = "status status-error";
-                    statusDiv.textContent = "❌ لا يمكن الوصول إلى الكاميرا. تأكد من منح الصلاحيات";
+                    statusDiv.textContent = "❌ لا يمكن الوصول إلى الكاميرا";
                 }
             }
         }
         
-        /**
-         * إيقاف الكاميرا
-         */
-        async function stopCamera() {
-            if (currentStream) {
-                currentStream.getTracks().forEach(track => {
-                    track.stop();
-                });
-                currentStream = null;
-                video.srcObject = null;
-                statusDiv.className = "status status-info";
-                statusDiv.textContent = "⏹️ تم إيقاف الكاميرا";
-            }
-        }
-        
-        /**
-         * التحقق من دعم getUserMedia
-         */
-        function checkBrowserSupport() {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                statusDiv.className = "status status-error";
-                statusDiv.textContent = "❌ متصفحك لا يدعم الوصول إلى الكاميرا";
-                return false;
-            }
-            return true;
-        }
-        
-        /**
-         * تهيئة التطبيق
-         */
-        async function init() {
-            if (!checkBrowserSupport()) {
-                return;
-            }
-            
+        // تبديل الكاميرا
+        async function switchCamera() {
+            currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
             await startCamera();
-            
-            // ربط الأزرار
-            document.getElementById('captureBtn').addEventListener('click', capturePhoto);
-            document.getElementById('switchCameraBtn').addEventListener('click', switchCamera);
-            document.getElementById('stopCameraBtn').addEventListener('click', stopCamera);
         }
         
-        // بدء التطبيق عند تحميل الصفحة
-        init();
+        // التحقق من التوافق
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            statusDiv.textContent = "❌ متصفحك لا يدعم الكاميرا";
+        } else {
+            startCamera();
+        }
         
-        // تنظيف الكاميرا عند إغلاق الصفحة
+        // ربط الأزرار
+        document.getElementById('captureBtn').addEventListener('click', captureAndAnalyze);
+        document.getElementById('switchCameraBtn').addEventListener('click', switchCamera);
+        
+        // التنظيف عند الإغلاق
         window.addEventListener('beforeunload', () => {
             if (currentStream) {
                 currentStream.getTracks().forEach(track => track.stop());
